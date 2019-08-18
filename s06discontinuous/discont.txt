@@ -1,0 +1,105 @@
+//KETlib
+use("KetCindyPlugin");
+Dircdy=loaddirectory;
+setdirectory(plugindirectory);
+import("ketcindy.ini");
+
+Ketinit();
+Ketinit3d();
+
+//figures
+Start3d();
+
+Ptseg3data();
+Putaxes3d(4);
+Xyzax3data("","x=[-3,3]","y=[-3,3]","z=[-3,3]");
+
+// z=(x^2-y^2)/(x^2+y^2)
+
+fd=[
+  "p","x=U*cos(V)","y=U*sin(V)","z=cos(V)^2-sin(V)^2",
+  "U=[0,2]","V=[0,2*pi]","e"
+];
+
+Deffun("cot(t)",["regional(y)","y=cos(t)/sin(t)","y"]);
+
+Deffun("fx2(v)",["regional(x)",
+"if(abs(sin(v))<1/sqrt(2),x=sign(cos(v)),x=sign(sin(v))*cot(v))",
+"x"]); 
+Deffun("fy2(v)",["regional(y)",
+"if(abs(cos(v))<1/sqrt(2),y=sign(sin(v)),y=sign(cos(v))*tan(v))",
+"y"]); 
+
+fd2=[
+  "z=(x^2-y^2)/(x^2+y^2)","x=U*fx2(V)","y=U*fy2(V)",
+  "U=[0.5,3]","V=[0,2*pi]","ewns"];
+
+Sf3data("1",fd);
+
+Ch=[1];
+if(contains(Ch,1),
+
+// normal vector of Fd
+Mkobjnrm("1",fd);
+cmdL1=[
+  "assume",["U>0"],
+  "a:trigsimp",[nrm1],
+  "a",[]
+];
+CalcbyM("norm1",cmdL1,[""]);
+
+tmp1=indexof(norm1,"/");
+tmp2=indexof(norm1,",");
+den1=substring(norm1,tmp1,tmp2-1);
+if(substring(den1,0,4)=="sqrt",
+  tmp1=Parlevel(den1);
+  tmp=select(tmp1,#_2==-1);
+  if(length(tmp)==1 & tmp_1_1==length(den1),
+    den1=substring(den1,tmp1_1_1,tmp_1_1-1);
+  );
+);
+den1=Assign(den1,["cos(V)","C","sin(V)","S"]);
+tmp=Assign(den1,["U",0]);
+Mxfun("1","solve",[tmp,"C"]);
+cmdL=[
+  "assume",["U>0"],
+  "a1:limit",[norm1,"V","0"],
+  "a2:limit",[norm1,"V","%pi/2"],
+  "a3:limit",[norm1,"V","3/2*%pi"],
+  "a4:limit",[norm1,"V","%pi"],
+  "a5:limit",[norm1,"V","2*%pi"],
+  "a1::a2::a3::a4::a5",[]
+];
+CalcbyM("lim1",cmdL,[""]);
+//println(lim1);
+
+Deffun("norm1(U,V)",
+ ["regional(Nv)",
+ "if(abs(V*(V-pi/2)*(V-3/2*pi)*(V-pi)*(V-2*pi))<10^(-6),
+  Nv=[0,0,1],Nv="+norm1+")",
+ "Nv"]); 
+
+// normal vector of Fd2
+tmp="[x,y,(x^2-y^2)/(x^2+y^2)],x,y";
+Mkobjnrm("2",tmp);
+norm2=Assign(nrm2,["x","(U*fx2(V))","y","(U*fy2(V))"]);
+Deffun("norm2(x,y)",
+ ["regional(Nv)","Nv="+nrm2,"Nv"]);
+
+Mkobjthickcmd("1",fd,"norm1(U,V)",[0.05,"+n+s-e-w+"]);
+Mkobjthickcmd("2",fd2,"norm2(U*fx2(V),U*fy2(V))",
+  [0.05,"+n+s-e-w+"]);
+Mkobjcrvcmd("3","ax3d");
+Mkobjsymbcmd("x",0.1,0,[0,1,0],[3.2,0,0]);
+Mkobjsymbcmd("y",0.1,0,[1,0,0],[0,3.2,0]);
+Mkobjsymbcmd("z",0.1,0,[1,1,0],[0,0,3.2]);
+Setobj();
+
+);
+
+Windispg();
+
+
+
+
+
