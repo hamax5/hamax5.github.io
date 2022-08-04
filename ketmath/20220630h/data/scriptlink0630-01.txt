@@ -1,3 +1,0 @@
-LinkL=[
-  ["ketmathrule.html","KeTMath数式"]
-];
