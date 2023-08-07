@@ -1341,7 +1341,7 @@ Expr(listorg,options):=( //16.10.09
     str=list_(3*#);
     if(isstring(str), //200526from
       if(!iswindows(),
-        str=replace(str,"¥","\");
+        str=replace(str,"Â¥","\");
       ); 
     ,
       str=format(str,10)
@@ -1524,24 +1524,23 @@ Ketcindyjsscale=1;
 <div id="eps" style="">
 <span class="">
 <span class="admin" style="display: none;"><input type="checkbox" onclick="EPS.switch_admin_parent2(this); " checked="true"></span>
-<button type="button" name="mode_menu_button" id="eps_mode_menu_botton" onclick="EPS.mode_menu(0)">èÆâüÉxLO</button></span>
+<button type="button" name="mode_menu_button" id="eps_mode_menu_botton" onclick="EPS.mode_menu(0)">ç·¨é›†ãƒ¢ãƒ¼ãƒ‰ã¸è¡Œã</button></span>
 <span class="" style="">
 <span class="admin" style="display: none;"><input type="checkbox" onclick="EPS.switch_admin_parent2(this); " checked="true"></span>
-<button type="button" name="save_botton" id="save_botton" onclick="EPS.save()" style="">İX</button></span>
-<table id="eps_menu_table" class="eps_menu_table, admin" border="1" style="display: none;"><tbody><tr><th>_ı</th><th>
-M</th><th>4@</th><th>ª×·çó</th></tr>
+<button type="button" name="save_botton" id="save_botton" onclick="EPS.save()" style="">ä¿å­˜</button></span>
+<table id="eps_menu_table" class="eps_menu_table, admin" border="1" style="display: none;"><tbody><tr><th>æ©Ÿèƒ½</th><th>åå‰</th><th>å ´æ‰€</th><th>ã‚ªãƒ—ã‚·ãƒ§ãƒ³</th></tr>
 
 <tr>
       <td>
-<input type="button" value="login -š" class="insert_dom_userid_button" onclick="eps.insert_dom_userid_button(this);">
+<input type="button" value="login è¨­å®š" class="insert_dom_userid_button" onclick="eps.insert_dom_userid_button(this);">
       </td>
        <td>
       </td>
        <td>
 <input type="text" class="insert_dom_userid_place" value="eps_basis" size="5">
 <select class="insert_dom_userid_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
@@ -1554,7 +1553,7 @@ M</th><th>4@</th><th>ª×·çó</th></tr>
 
 <tr>
       <td>
-<input type="button" value="radio button ı " class="insert_dom_radio_button" onclick="eps.insert_dom_radio_button(this);">
+<input type="button" value="radio button è¿½åŠ " class="insert_dom_radio_button" onclick="eps.insert_dom_radio_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_radio_name" value="r1" size="5">
@@ -1562,19 +1561,19 @@ M</th><th>4@</th><th>ª×·çó</th></tr>
        <td>
 <input type="text" class="insert_dom_radio_place" value="eps_basis" size="5">
 <select class="insert_dom_radio_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
-x¢: <input type="text" class="insert_dom_radio_selections" value="A,B,C">
+é¸æŠè‚¢: <input type="text" class="insert_dom_radio_selections" value="A,B,C">
       </td>
     </tr>
 
 
 <tr>
       <td>
-<input type="button" value="textarea ı " class="insert_dom_textarea_button" onclick="eps.insert_dom_textarea_button(this);">
+<input type="button" value="textarea è¿½åŠ " class="insert_dom_textarea_button" onclick="eps.insert_dom_textarea_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_textarea_name" value="t1" size="5">
@@ -1582,20 +1581,20 @@ x¢: <input type="text" class="insert_dom_radio_selections" value="A,B,C">
        <td>
 <input type="text" class="insert_dom_textarea_place" value="eps_basis" size="5">
 <select class="insert_dom_textarea_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
-Lp: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
-p: <input type="text" class="insert_dom_textarea_column" size="5" value="80">
+è¡Œæ•°: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
+åˆ—æ•°: <input type="text" class="insert_dom_textarea_column" size="5" value="80">
       </td>
     </tr>
 
 
 <tr>
       <td>
-<input type="button" value="Cinderella ı " class="insert_dom_cinderella_button" onclick="eps.insert_dom_cinderella_button(this);">
+<input type="button" value="Cinderella è¿½åŠ " class="insert_dom_cinderella_button" onclick="eps.insert_dom_cinderella_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_cinderella_name" value="c1" size="5">
@@ -1603,8 +1602,8 @@ Lp: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
        <td>
 <input type="text" class="insert_dom_cinderella_place" value="eps_basis" size="5">
 <select class="insert_dom_cinderella_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
@@ -1614,7 +1613,7 @@ Lp: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
 
 <tr>
       <td>
-<input type="button" value="Quill ı " class="insert_dom_quill_button" onclick="eps.insert_dom_quill_button(this);">
+<input type="button" value="Quill è¿½åŠ " class="insert_dom_quill_button" onclick="eps.insert_dom_quill_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_quill_name" value="q1" size="5">
@@ -1622,8 +1621,8 @@ Lp: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
        <td>
 <input type="text" class="insert_dom_quill_place" value="eps_basis" size="5">
 <select class="insert_dom_quill_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
@@ -1633,7 +1632,7 @@ Lp: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
 
 <tr>
       <td>
-<input type="button" value="Javascript Ü¿ó ı " class="insert_dom_j_button_button" onclick="eps.insert_dom_j_button_button(this);">
+<input type="button" value="Javascript ãƒœã‚¿ãƒ³ è¿½åŠ " class="insert_dom_j_button_button" onclick="eps.insert_dom_j_button_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_j_button_name" value="j1" size="5">
@@ -1641,20 +1640,20 @@ Lp: <input type="text" class="insert_dom_textarea_row" size="5" value="10">
        <td>
 <input type="text" class="insert_dom_j_button_place" value="eps_basis" size="5">
 <select class="insert_dom_j_button_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
-label: <input type="text" class="insert_dom_j_button_label" size="10" value="ŸL">
-Lp: <input type="text" class="insert_dom_j_button_row" size="10" value="10">
-p: <input type="text" class="insert_dom_j_button_column" size="10" value="80">
+label: <input type="text" class="insert_dom_j_button_label" size="10" value="å®Ÿè¡Œ">
+è¡Œæ•°: <input type="text" class="insert_dom_j_button_row" size="10" value="10">
+åˆ—æ•°: <input type="text" class="insert_dom_j_button_column" size="10" value="80">
       </td>
 </tr>
 
 <tr>
       <td>
-<input type="button" value="Chart ı " class="insert_dom_chart_button" onclick="eps.insert_dom_chart_button(this);">
+<input type="button" value="Chart è¿½åŠ " class="insert_dom_chart_button" onclick="eps.insert_dom_chart_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_chart_name" value="g1" size="5">
@@ -1662,13 +1661,13 @@ Lp: <input type="text" class="insert_dom_j_button_row" size="10" value="10">
        <td>
 <input type="text" class="insert_dom_chart_place" value="eps_basis" size="5">
 <select class="insert_dom_chart_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
-label1: <input type="text" class="insert_dom_chart_label1" size="10" value="°éÕÏ;">
-Çü¿b: <select class="insert_dom_chart_dataformat">
+label1: <input type="text" class="insert_dom_chart_label1" size="10" value="ã‚°ãƒ©ãƒ•æç”»">
+ãƒ‡ãƒ¼ã‚¿å½¢å¼: <select class="insert_dom_chart_dataformat">
 <option value="textarea">textarea</option>
 <option value="jspreadsheet">jspreadsheet</option>
 </select>
@@ -1677,7 +1676,7 @@ label1: <input type="text" class="insert_dom_chart_label1" size="10" value="°éÕÏ
 
 <tr>
       <td>
-<input type="button" value="h— ı " class="insert_dom_spread_button" onclick="eps.insert_dom_spread_button(this);">
+<input type="button" value="è¡¨è¨ˆç®— è¿½åŠ " class="insert_dom_spread_button" onclick="eps.insert_dom_spread_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_spread_name" value="s1" size="5">
@@ -1685,20 +1684,20 @@ label1: <input type="text" class="insert_dom_chart_label1" size="10" value="°éÕÏ
        <td>
 <input type="text" class="insert_dom_spread_place" value="eps_basis" size="5">
 <select class="insert_dom_spread_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
-label1: <input type="text" class="insert_dom_spread_label1" size="10" value="h—">
-label2: <input type="text" class="insert_dom_spread_label2" size="10" value="À¦óíüÉ">
-label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csvú›">
+label1: <input type="text" class="insert_dom_spread_label1" size="10" value="è¡¨è¨ˆç®—">
+label2: <input type="text" class="insert_dom_spread_label2" size="10" value="ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰">
+label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csvå‡ºåŠ›">
       </td>
 </tr>
 
 <tr>
       <td>
-<input type="button" value="Õ¡¤ëeú› ı " class="insert_dom_fileinoutput_button" onclick="eps.insert_dom_fileinoutput_button(this);">
+<input type="button" value="ãƒ•ã‚¡ã‚¤ãƒ«å…¥å‡ºåŠ› è¿½åŠ " class="insert_dom_fileinoutput_button" onclick="eps.insert_dom_fileinoutput_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_fileinoutput_name" value="g1" size="5">
@@ -1706,8 +1705,8 @@ label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csv
        <td>
 <input type="text" class="insert_dom_fileinoutput_place" value="eps_basis" size="5">
 <select class="insert_dom_fileinoutput_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
@@ -1716,7 +1715,7 @@ label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csv
 
 <tr>
       <td>
-<input type="button" value=";bq	 ı " class="insert_dom_displayshare_button" onclick="eps.insert_dom_displayshare_button(this);">
+<input type="button" value="ç”»é¢å…±æœ‰ è¿½åŠ " class="insert_dom_displayshare_button" onclick="eps.insert_dom_displayshare_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_displayshare_name" value="d1" size="5">
@@ -1724,21 +1723,21 @@ label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csv
        <td>
 <input type="text" class="insert_dom_displayshare_place" value="eps_basis" size="5">
 <select class="insert_dom_displayshare_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
 <select class="insert_dom_displayshare_sendrecv">
-<option value="send">á</option>
-<option value="recv">×á</option>
+<option value="send">é€ä¿¡</option>
+<option value="recv">å—ä¿¡</option>
 </select>
       </td>
 </tr>
 
 <tr>
       <td>
-<input type="button" value="TVûq ı " class="insert_dom_TVphone_button" onclick="eps.insert_dom_TVphone_button(this);">
+<input type="button" value="TVé›»è©± è¿½åŠ " class="insert_dom_TVphone_button" onclick="eps.insert_dom_TVphone_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_TVphone_name" value="t1" size="5">
@@ -1746,22 +1745,22 @@ label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csv
        <td>
 <input type="text" class="insert_dom_TVphone_place" value="eps_basis" size="5">
 <select class="insert_dom_TVphone_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
 <select class="insert_dom_TVphone_sendrecv">
-<option value="sendrecv">×á</option>
-<option value="send">á</option>
-<option value="recv">×á</option>
+<option value="sendrecv">é€å—ä¿¡</option>
+<option value="send">é€ä¿¡</option>
+<option value="recv">å—ä¿¡</option>
 </select>
       </td>
 </tr>
 
 <tr>
       <td>
-<input type="button" value="P2PÇü¿ ı " class="insert_dom_DataEx_button" onclick="eps.insert_dom_DataEx_button(this);">
+<input type="button" value="P2Pãƒ‡ãƒ¼ã‚¿ è¿½åŠ " class="insert_dom_DataEx_button" onclick="eps.insert_dom_DataEx_button(this);">
       </td>
        <td>
 <input type="text" class="insert_dom_DataEx_name" value="d1" size="5">
@@ -1769,20 +1768,20 @@ label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csv
        <td>
 <input type="text" class="insert_dom_DataEx_place" value="eps_basis" size="5">
 <select class="insert_dom_DataEx_beforeafter">
-<option value="after">nŒ</option>
-<option value="before">nM</option>
+<option value="after">ã®å¾Œ</option>
+<option value="before">ã®å‰</option>
 </select>
       </td>
        <td>
 <select class="insert_dom_DataEx_recv">
-<option value="textarea">Æ­¹È¨ê¢</option>
-<option value="exec">ŸL</option>
+<option value="textarea">ãƒ†ã‚­ã‚¹ãƒˆã‚¨ãƒªã‚¢</option>
+<option value="exec">å®Ÿè¡Œ</option>
 </select>
       </td>
 </tr>
 
       <tr><td>
-<input type="button" value="Jd" class="delete_dom_button" onclick="eps.delete_dom_button(this);">
+<input type="button" value="å‰Šé™¤" class="delete_dom_button" onclick="eps.delete_dom_button(this);">
       </td>
        <td>
 <input type="text" class="delete_dom_name" value="test1" size="5">
@@ -1826,7 +1825,7 @@ label3: <input type="text" class="insert_dom_spread_label3" size="10" value="csv
 </span>
 <span class="">
 <span class="admin" style="display: none;"><input type="checkbox" onclick="EPS.switch_admin_parent2(this); " checked="true"></span>
-<input type="button" id="j_button_0" value="ŸL" onclick="eps.j_button_exec_this(this);"></span></div>
+<input type="button" id="j_button_0" value="å®Ÿè¡Œ" onclick="eps.j_button_exec_this(this);"></span></div>
 
 <script>
 
@@ -1844,7 +1843,7 @@ let videoCodec = null;
 let audioCodec = null;
 let signalingKey = null;
 
-// query string K‰ roomId, clientId ’Ö—Y‹ØëÑü
+// query string ã‹ã‚‰ roomId, clientId ã‚’å–å¾—ã™ã‚‹ãƒ˜ãƒ«ãƒ‘ãƒ¼
 function parseQueryString() {
   const qs = window.Qs;
   if (window.location.search.length > 0) {
@@ -2005,7 +2004,7 @@ EPS.cinderella_obj[0] = CindyJS({
     pointSize: 5.0,
     textsize: 12.0
   },
-  angleUnit: "°",
+  angleUnit: "Â°",
   geometry: [
     {name: "SW", type: "Free", pos: [4.0, 4.0, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
     {name: "NE", type: "Free", pos: [4.0, 4.0, 0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
