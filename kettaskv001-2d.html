@@ -16,7 +16,7 @@
 <head>
     <meta charset="UTF-8">
     
-    <title>kettask001-1</title>
+    <title>kettask001-2</title>
     <style type="text/css">
         * {
             margin: 0px;
@@ -3099,9 +3099,9 @@ Lettermove(dir,str):=(
 Ketcindyjsfigure=0;
 Ketcindyjsscale=1;
 aalinestart=1;
-quline="Q01::円に内接する四辺形1234をとって対角線で分ける．//２つの三角形の内接円の半径を考える	[1]::対角線13のとき，半径r_1,r_2はいくつか．	[2]::対角線24のとき，半径r_3,r_4はいくつか．	[3]::r_1,r_2,r_3,r_4にどんな関係式があるか．";
-shline="Q01---	[1]r_1,r_2= 	[2]r_3,r_4= 	[3]関係式： ";
-sqline="01AA	2	2	2	2CR02BB	2	2	2	2CR03CC	2	2	2	2CR04DD	2	2	2	2CR05EE	2	2	2	2CR06FF	2	2	2	2CR07GG	2	2	2	2CR08HH	2	2	2	2CR09II	2	2	2	2CR10JJ	2	2	2	2";
+quline="Q02::三角形ABCの内接円の半径r_0=1,tan(tfr(B,2))=m，//傍接円の共通接線が作る三角形をDEFとする	[1]::m=0.5のとき，傍接円の半径r_1,r_2,r_3の和はいくらか	[2]::DEFの内接円の半径Rはいくらか	[3]::m=0.75のとき，S=r_0+r_1+r_2+r_3はいくらか	[4]::また，Rはいくらか．	[5]::MNR法の結果を用いてSを計算せよ	[6]::SとRの関係を述べよ";
+shline="Q02---	[1]r_1+r_2+r_3= 	[2]R= 	[3]r_0+r_1+r_2+r_3= 	[4]S= 	[5]S= 	[6]  ";
+sqline="01AA	2	2	2	2	2	2	2CR02BB	2	2	2	2	2	2	2CR03CC	2	2	2	2	2	2	2CR04DD	2	2	2	2	2	2	2CR05EE	2	2	2	2	2	2	2CR06FF	2	2	2	2	2	2	2CR07GG	2	2	2	2	2	2	2CR08HH	2	2	2	2	2	2	2CR09II	2	2	2	2	2	2	2CR10JJ	2	2	2	2	2	2	2";
 quLL=Line2list(quline);
 shL=Line2list(shline);
 sqLL=Line2list(sqline);
@@ -4204,6 +4204,142 @@ dtpyL=dtpy0/22*size;
 ch=2;
 ;
 
+Mvcircledata(num,cirdata):=Mvcircledata(num,cirdata,[]);
+Mvcircledata(num,cirdata,op):=(
+  //help:Mvcircledata("1",[C,r],[]);
+  regional(tmp1,tmp2,op1,op2);
+  tmp1=select(op,substring(#,0,1)=="N");
+  tmp2=select(op,substring(#,0,1)=="R");
+Mvlist(pdatastr):=Mvlist(pdatastr,pdatastr,[]);
+Mvlist(Arg1,Arg2):=(
+ regional(tmp);
+ if(islist(Arg2),
+   tmp=select(Arg2,isstring(#));
+   if(length(tmp)==0,
+     Mvlist(Arg1,Arg2,[]);
+   ,
+     Mvlist(Arg1,Arg1,Arg2);
+   );
+ ,
+   Mvlist(Arg1,Arg2,[]);
+ );
+);
+Mvlist(num,pdataorg,opt):=(
+//help:Mvlist(num,"cr1");
+  regional(name,pdata,tmp);
+  println(pdataorg);
+  pdata=pdataorg;
+  if(isstring(pdataorg),
+    name="m"+pdata;
+    pdata=parse(pdata);
+  ,
+    name="m"+num;
+  );
+  tmp=apply(pdata,Mvpt(#));
+  Listplot("-"+name,tmp,opt);
+);
+Mvpt(pt):=(
+  Scale*pt+Center;  //Scale,Center grobal
+);
+Mvpt(x,y):=Mvpt([x,y]);
+Putonseg(name,sgstr):=(
+  regional(seg,p1,p2);
+  if(isstring(sgstr),seg=parse(sgstr),seg=sgstr);
+  Putonseg(name,LLcrd(seg_1),LLcrd(seg_2));
+);
+Putonseg(name,p1,p2):=Putonseg(name,p1,p2,[]);
+Putonseg(name,p1org,p2org,options):=(
+//help:Putonseg("C","sgAB");
+//help:Putonseg("C",pA,pB);
+  regional(Eps,par,p1,p2,dx,dy,p,tmp,tmp1,tmp2);
+  Eps=10^(-5);
+  par=0.5;
+  tmp=Divoptions(options);
+  if(length(tmp_6)>0,
+    par=tmp_6_1;
+  );
+  p1=Lcrd(p1org);//16.10.11from
+  p2=Lcrd(p2org);
+  Putpoint(name,(p1+p2)/2,parse(name+".xy")); //190216 //no ketjs
+  p1=Pcrd(p1); p2=Pcrd(p2); //190120
+  dx=p2_1-p1_1;
+  dy=p2_2-p1_2;
+  p=parse(name+".xy");
+  if(abs(dx)>abs(dy), //190120from
+    if(p1_1>p2_1,tmp=p1;p1=p2;p2=tmp);
+    if(p_1<p1_1,parse(name+".xy="+Textformat(p1,10));p=p1);
+    if(p_1>p2_1,parse(name+".xy="+Textformat(p2,10));p=p2);
+    tmp=(p2_2-p1_2)/(p2_1-p1_1)*(p_1-p1_1)+p1_2;
+    parse(name+".y="+tmp+";"); //190415
+  ,
+    if(p1_2>p2_2,tmp=p1;p1=p2;p2=tmp);
+    if(p_2<p1_2,parse(name+".xy="+Textformat(p1,10));p=p1);
+    if(p_2>p2_2,parse(name+".xy="+Textformat(p2,10));p=p2);
+    tmp=(p2_1-p1_1)/(p2_2-p1_2)*(p_2-p1_2)+p1_1;
+    parse(name+".x="+tmp+";"); //190415
+  ); //190120to
+);
+RSslash(str):=(  //17.09.24
+  regional(tmp);
+  tmp=replace(str,"\","\\");
+//  tmp=replace(tmp,"\\\\","\\");
+  tmp;
+);
+Slider(ptstr,p1,p2):=Slider(ptstr,p1,p2,[]);
+Slider(ptstr,p1,p2,optionsorg):=(//220903
+//help:Slider("A-C-B",[-3,0],[3,0]);
+//help:Slider("C",[-3,0],[3,0]);
+//help:Slider(options=["Color=[0,0,0.6]","Thick=2"]);
+//help:Slider(options2=["Sep=0.3"]); //190824
+  regional(pA,pB,pC,options,color,thick,sep,
+        tmp,tmp1,tmp2);
+  options=optionsorg;
+  color="Color=0.6*[0,0,1]"; //190120from
+  thick="size->2";
+  sep=0.3; //190824
+  forall(options,
+    tmp=Toupper(substring(#,0,1));
+    if(tmp=="C",
+      color=#;
+      options=remove(options,[tmp]);//220903
+    );
+    if(tmp=="T",
+      tmp=Strsplit(#,"=");
+      thick="size->"+tmp_2;
+      options=remove(options,[tmp]);//220903
+    );
+    if(tmp=="S",//190824from
+      tmp=Strsplit(#,"=");
+      sep=parse(tmp_2);
+      options=remove(options,[tmp]);//220903
+    ); //190824to
+  );
+  tmp=Indexall(ptstr,"-");
+  if(length(tmp)>0,
+    pA=substring(ptstr,0,tmp_1-1); //190824from
+    pC=substring(ptstr,tmp_1,tmp_2-1);
+    pB=substring(ptstr,tmp_2,length(ptstr));
+    parse(pA).xy=p1;
+    parse(pB).xy=p2; //190824to
+    tmp1=pC+"position"; //190827from
+    if(!islist(parse(tmp1)),
+      tmp2=parse(pC).xy;
+      if(|tmp2-p1|<0.1,tmp2=p1+0.1*(p2-p1)/|p2-p1|);
+      if(|tmp2-p2|<0.1,tmp2=p2+0.1*(p1-p2)/|p1-p2|);
+      tmp=tmp1+"="+textformat(tmp2,10)+";";
+      parse(tmp);
+      parse(pC).xy=tmp2;
+    ); //190827to
+    PTEXCEPTION=concat(TEXCEPTION,[pA,pC,pB]);
+  ,
+    pC=ptstr; pA=pC+"l"; pB=pC+"r"; 
+    PTEXCEPTION=concat(PTEXCEPTION,[pC]);
+  );
+  options=concat(options,["Msg=n",color,thick]); //220903[2lines]
+  if(!contains(options,"nodisp"),options=append(options,"notex"));
+  Listplot(pA+pB,[p1,p2],options);
+  Putonseg(pC,parse("sg"+pA+pB));
+);
 </script>
 <script id="csdraw" type="text/x-cindyscript">
 Ketinit(0.6);
@@ -4504,6 +4640,69 @@ if(stok==1,
   Subsedit(3,StrL_3);
 );
 
+Center=[86.603,10.664];
+Scale=1;
+Rbound=[120.426,0];
+tmp1=screenbounds();tmp1=[tmp1_2_1,0];
+Center=Center-Rbound+tmp1;
+//create(M);
+Slider("M",[90,-25],[100,-25]);
+m=(M.x-70)/40;
+n=0.7;
+r=1;
+
+pAs=[((n-m)*r)/(1-m*n),((m*n+1)*r)/(1-m*n)];
+pBs=[-r/m,-r];
+pCs=[r/n,-r];
+
+Ca=[((m-n)*r)/(m*n),-((m*n+1)*r)/(m*n)];
+Ra=r/(m*n);
+Cb=[-((m^2+1)*r)/(m*(1-m*n)),((m^2+1)*n*r)/(m*(1-m*n))];
+Rb=((n+m)*r)/(m*(1-m*n));
+Cc=[((n^2+1)*r)/(n*(1-m*n)),(m*(n^2+1)*r)/(n*(1-m*n))];
+Rc=((n+m)*r)/(n*(1-m*n));
+
+Ds=[-((n-m)*r)/(m*n),-(((m^3-m)*n^3+((-4*m^2)-2)*n^2+((-m^3)-3*m)*n-2*m^2)*r)/((m^3-m)*n^3-4*m^2*n^2+(m-m^3)*n)];
+Es=[-(((m^2-1)*n^4-4*n^2+((-2*m^3)-2*m)*n+m^2-1)*r)/((m^3-m)*n^4+(1-m^2)*n^3+(m^3-m)*n^2+(1-m^2)*n),-(((m^2-1)*n^3+2*m*n^2+(3*m^2+1)*n+2*m)*r)/((m^2-1)*n^3+(m^2-1)*n)];
+Fs=[-((2*m*n^3+((-m^4)-1)*n^2+2*m*n+m^4+4*m^2+1)*r)/((m^4+m^2)*n^3+((-m^3)-m)*n^2+((-m^4)-m^2)*n+m^3+m),-(((m^3+3*m)*n^2+(2*m^2+2)*n-m^3+m)*r)/((m^3+m)*n^2-m^3-m)];
+CRs=[-((n-m)*r)/(m*n),-((3*m^2*n^2+n^2+m^2-1)*r)/(2*m*n*(m*n-1))];
+Rs=-((m^2*n^2-n^2-2*m*n-m^2-1)*r)/(2*m*n*(m*n-1));
+
+Mvcircledata("a",[Ca,Ra]);
+Mvcircledata("b",[Cb,Rb]);
+Mvcircledata("c",[Cc,Rc]);
+Mvlist("1",[pAs,pBs,pCs,pAs]);
+Mvcircledata("r",[[0,0],1],[]);
+Mvlist("2",[Ds,Es,Fs,Ds]);
+Mvcircledata("R",[CRs,Rs],["Color=red"]);
+Letter(Mvpt(Ca),"c","1");
+Letter(Mvpt(Cb),"c","2");
+Letter(Mvpt(Cc),"c","3");
+Letter(M.xy+[0,2],"c","m="+format(m,2));
+
+if(nqu<6, //add embed
+op=["Size=1.5"];
+Expr([90,0],"e","r_0="+format(r,2),op);
+Expr([90,-2],"e","r_1="+format(Ra,2),op);
+Expr([90,-4],"e","r_2="+format(Rb,2),op);
+Expr([90,-6],"e","r_3="+format(Rc,2),op);
+op=append(op,"Color=red");
+Expr([90,-10],"e","R="+format(abs(Rs),2),op);
+); //add embed
+
+if(nqu==6, //add embed
+ rr="r=1";
+ Ra=Totexform("r_1=fr(1,mn)");
+ Rb=Totexform("r_2=fr(n+m,m(1-m*n))");
+ Rc=Totexform("r_3=fr(n+m,n*(1-m*n))");
+ Sm=Totexform("S=-fr(m^2*n^2-n^2-2mn-m^2-1,mn(mn-1))");
+ Rs=Totexform("R=-fr(m^2*n^2-n^2-2mn-m^2-1,2mn(mn-1))");
+ Expr([85,0],"e",rr);
+ Expr([85,-5],"e",Ra);
+ Expr([85,-10],"e",Rb);
+ Expr([85,-15],"e",Rc);
+ Expr([85,-20],"e",Rs);
+); //add embed
 Windispg();
 ;
 
@@ -4521,6 +4720,7 @@ var cdy = CindyJS({
   },
   angleUnit: "°",
   geometry: [
+{name: "M", type: "Free", pos: [1,1,1]},
     {name: "Text1", type: "EditableText", pos: [4.0, 3.9148936170212765, 0.1702127659574468], color: [0.0, 0.0, 0.0], fillcolor: [1.0, 1.0, 1.0], fillalpha: 1.0, minwidth: 500, textsize: 24.0},
     {name: "NE", type: "Free", pos: [4.0, 1.0067746650167269, 0.05318084682256492], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
     {name: "Text2", type: "EditableText", pos: [4.0, -0.8516129032258064, 0.25806451612903225], color: [0.0, 0.0, 0.0], fillcolor: [1.0, 1.0, 1.0], fillalpha: 1.0, minwidth: 580, textsize: 24.0},
@@ -4658,7 +4858,7 @@ var cdy = CindyJS({
 </head>
 <body>
 <header><p><font size="6">
-KeTTask001-1
+KeTTask001-2
 </font></p></header>
     <div id="CSCanvas"></div>
 <div style="padding: 50px">
