@@ -1,0 +1,452 @@
+<html><head>
+    <meta charset="utf-8">
+    <title>Canvas Paint Tool</title>
+    
+
+<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!--   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/material-design-inspired-color-picker@1.7.2/dist/md-color-picker.min.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/FileSaver.min.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette_3a.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/algebrite/algebrite.bundle-for-browser.js"></script>
+
+<link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/CindyJS.css">
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/CindyJS/Cindy.js"></script>
+
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Converter.js"></script>
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Sanitizer.js"></script>
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Editor.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML-full"></script>
+  
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/MJPDEditing.js"></script>
+
+        <script>
+            MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+                tex2jax: { inlineMath: [ ["$", "$"], ["\\\\(","\\\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+                TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+                messageStyle: "none"
+            });
+        </script>
+
+</head>
+
+<!--
+<body style="transform: scale(1.2); transform: scale(2);">
+<body style="transform: scale(1.625,1.625) translate(250px,0px);">
+<body style="transform: scale(1.45,1.45) translate(150px,0px);">
+-->
+<body>
+
+ <div id="scale_div" style="position: absolute; transform-origin: 0px 0px; transform: scale(1);">
+<!--
+<iframe id="test_iframe" src="file:///C:/data/EPS4/cresco_oekaki/sugaku1.png" target="_blank rel="noreferrer noopener" width="1000" height="1600"></iframe>
+-->
+
+<input type="button" value="flick" onclick="mode='flick'; Palette.load_url_width($('#url1')[0],'#test_iframe'); set_cood('#b0',46,831);">
+<input type="button" value="keyboard" onclick="mode='keyboard'; Palette.load_url_width($('#url2')[0],'#test_iframe'); set_cood('#b0',78,612);">
+
+<div id="top_display" style="display: flex;">
+
+  <div id="iframe1">
+<!--   <iframe id="test_iframe" src="kettaskorgvF1223.html" target="_blank rel=" noreferrer="" noopener"="" width="660" height="3000" style="pointer-events: auto;"></iframe> -->
+    <iframe id="test_iframe" src="hamaguchi_kettask001.html" target="_blank rel=" noreferrer="" noopener"="" width="670" height="2000" style="pointer-events: auto;"></iframe>
+  </div>
+  
+<!--  <div id="test" height="3000" class="painton" style="top: 0px; left: 0; margin: auto; position: absolute; height: 3000px;  pointer-events: auto;"> -->
+  <div id="test" class="painton" style="top: 0px; left: 0; margin: auto; position: absolute;  pointer-events: auto;">
+
+
+<div id="b0" class="palette body top button" index="1" style="top: 831px; left: 46px; position: absolute;">
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 73px; height: 50.3333px; top: 0px; left: 0px;" value="Rec"><input type="button" class="palette body move button" value="i: b0" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 43px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 50.3333px; left: 43px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 50.3333px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 73px; display: none;">submit_data();</textarea></div><div id="c1" class="palette body top cindy" index="1" style="top: 219px; left: 425px; position: absolute;">
+    <div id="CSCanvas_1" class="CindyJS-widget palette body target cindy" style="position: relative; width: 203px; height: 159px;"><canvas style="position: absolute; border: none; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 100%; width: 100%; background-color: rgb(168, 176, 192);" width="380" height="298"></canvas><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: c1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 173px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 159px; left: 173px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 159px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 203px; display: none;"></textarea></div><div id="b1" class="palette body top button" index="2" style="top: 306px; left: 323px; position: absolute;">
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 85px; height: 30px; top: 0px; left: 0px;" value="Plot"><input type="button" class="palette body move button" value="i: b1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 55px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 55px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 85px; display: none;">var fx = document.getElementById('test_iframe').contentWindow.cdy.evalcs('Text2').value.text;
+fx1 = fx.split("=")[1];
+Palette_Cindy.cinderella_obj[1].evokeCS("csdraw():=(plot(x*x-3*x); plot("+fx1+"))");</textarea></div></div>
+
+
+<div>
+
+
+<div class="menu" style="">
+
+    <div>
+      <input type="button" value="保存" onclick="Palette.save()">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="button" onclick="Palette.gen_button('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+      <input type="text" class="selector" size="3">
+      図:
+      <input type="file" onchange="Palette.upload_image(this,'test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="text" onclick="Palette.gen_text('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="text2" onclick="Palette.gen_text2('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="textarea" onclick="Palette.gen_textarea('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="markdown" onclick="Palette.gen_markdown('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="radio" onclick="Palette.gen_radio('test',this.parentElement.querySelector('.selector').value, this.parentElement.querySelector('.radiochoice').value)">
+      <input type="text" class="radiochoice" size="3">
+    </div>
+    <div>
+      <input type="text" class="selector" size="3">
+      Cinderella:
+       <input type="file" onchange="Palette.upload_cinderella(this,'test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="compound" onclick="Palette.gen_compound('test',this.parentElement.querySelector('.selector').value, this.parentElement.querySelector('.elt').value)">
+      <input type="text" class="elt" size="3">
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+    
+<div>
+      <input type="button" value="モード切り替え" onclick="Palette.mode_change(); set_mode_scale();">
+</div>
+
+
+<div class="system_area" style="">
+
+<div class="paint_url" name="url1" style="">
+URL1:
+<input class="paint_url_data" type="text" size="50" value="hamaguchi_kettask001.html">
+<input class="paint_url_width" type="text" size="5" value="670">
+ <!-- <input type="button" class="paint_url_click" value="ロード"> -->
+ <!-- <input id="url1" type="button" onclick="Palette.load_url(this,'#test_iframe')" value="load"> -->
+<input id="url1" type="button" onclick="Palette.load_url_width(this,'#test_iframe'); set_cood('#b0',46,831);" value="load">
+    </div>
+
+<div class="paint_url" name="url2" style="">
+URL2:
+<input class="paint_url_data" type="text" size="50" value="kettaskv0529-1.html">
+<input class="paint_url_width" type="text" size="5" value="815">
+<!-- <input type="button" class="paint_url_click" value="ロード"> -->
+<!-- <input id="url2" type="button" onclick="Palette.load_url(this,'#test_iframe')" value="load">  -->
+<input id="url2" type="button" onclick="Palette.load_url_width(this,'#test_iframe'); set_cood('#b0',78,612);" value="load">
+</div>
+
+<div class="show_hide" style="">
+表示設定:
+<input class="show_hide_data" id="show_hide_data_1" type="text" size="50" value="{ &quot;#c1&quot;:[2,3], &quot;#b1&quot;:[2,3] }">
+</div>
+
+<div class="logname" style="">
+log名:
+<input class="logname_data" id="logname_data_1" type="text" size="50" value="kaiseki1">
+</div>
+
+<div>
+<textarea id="log" style="width: 166px; height: 37px;"></textarea>
+</div>
+
+<div id="system_init" style="display:none;">
+System init:<br>
+<textarea id="system_init_textarea" cols="80" rows="10">
+Palette_Cindy.cinderella_code[1]=`Palette_Cindy.cinderella_obj[1] = CindyJS({"scripts":"cs*","defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","ports":[{"id":"CSCanvas_1","width":203,"height":159,"transform":[{"visibleRect":[-9.06,9.34,14.1,-4.14]}],"axes":true,"grid":1,"background":"rgb(168,176,192)"}],"csconsole":false,"cinderella":{"build":2071,"version":[3,0,2071]}});`;
+eval(Palette_Cindy.cinderella_code[1]);
+Palette_Cindy.cinderella_json[1]=`{"scripts":"cs*","defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","ports":[{"id":"CSCanvas_1","width":203,"height":159,"transform":[{"visibleRect":[-9.06,9.34,14.1,-4.14]}],"axes":true,"grid":1,"background":"rgb(168,176,192)"}],"csconsole":false,"cinderella":{"build":2071,"version":[3,0,2071]}}`;
+Palette_Cindy.cinderella_init[1]="csdraw() := (\n//Script (CindyScript)\nplot(x*x-3*x);\n);\n";
+Palette_Cindy.cinderella_obj[1].evokeCS(Palette_Cindy.cinderella_init[1]);</textarea>
+</div>
+
+</div>
+
+<script id="csdraw" type="text/x-cindyscript">
+csdraw();
+</script>
+
+<script id="csmove" type="text/x-cindyscript">
+csmove();
+</script>
+
+<script id="csinit" type="text/x-cindyscript">
+csdraw() := ();
+csmove() := ();
+</script>
+
+<!--
+<script id="csinit" type="text/x-cindyscript">
+csdraw() := (
+  plot(x*x-3*x);
+);
+</script>
+-->
+
+
+<script>
+
+function set_cood(selector,x,y) {
+
+  console.log("set_cood: selector="+selector+", x="+x+", y="+y);
+
+  $(selector).css("left",String(x)+"px");
+  $(selector).css("top",String(y)+"px");
+  
+}
+
+function submit_data() {
+
+  let con = confirm("問題の解答とキー入力のログをサーバーに送り、課題を終了しますが、それで良いですか？");
+  if (!(con)) {
+    return(0);
+  }
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  let logname = document.querySelector("#logname_data_1").value;
+  let fname = "ketlms/"+ logname + ".log";
+  let url = "http://www.ktky.sakura.ne.jp/file/recieve_data6.php";
+  let com = {};
+  com["data"] = ansdata;
+  com["filename"] = fname;
+  console.log("url"+url);
+  console.log("com="+com);
+  Palette.exec_url(url,com);
+  let uname = ansdata.split(";;")[0];
+  fname = "ketlms/" + logname + "_" + uname + ".klog";
+  ansdata = document.querySelector("#log").value;
+  com["data"] = ansdata;
+  com["filename"] = fname;
+  Palette.exec_url(url,com);
+
+}
+
+// let epagew = Number(document.querySelector('.paint_url + div[name="url1"]').querySelector('.paint_url_width').value);
+// let epagew = Number(document.querySelector('div[name="url1"]').querySelector('.paint_url_width').value);
+let epagew = Number(document.querySelector('div[name="url1"] > .paint_url_width').value);
+console.log("epagew = "+epagew);
+
+function HtmlString_To_Document(text){
+  try{
+    var dom_parser = new DOMParser();
+    var document_obj = dom_parser.parseFromString(text , "text/html");
+    if(document_obj.getElementsByTagName("parsererror").length == 0){
+      return document_obj;
+    }
+  }catch(e){
+  }
+
+  try{
+    var document_obj = document.implementation.createHTMLDocument("");
+    document_obj.body.innerHTML = text;
+    return document_obj;
+  }catch(e){
+  }
+
+  return null;
+}
+
+function set_scale(selector,scale) {
+  
+ $(selector).css({ 'transform-origin' : '0 0','transform' : 'scale('+scale+')'});
+
+}
+
+/*
+function getViewportSize() {
+  const w1 = document.documentElement.clientWidth,
+  w2 =  window.innerWidth,
+  h1 = document.documentElement.clientHeight,
+  h2 = window.innerHeight;
+        
+  alert("w1="+w1+", w2="+w2+", h1="+h1+",h2="+h2);
+  
+}
+*/
+
+// getViewportSize();
+
+set_scale("#scale_div",(document.documentElement.clientWidth)/epagew);
+// set_scale("#scale_div",1);
+function set_mode_scale() {
+
+  if (Palette.mode == "user") {
+  
+    set_scale("#scale_div",(document.documentElement.clientWidth)/epagew);
+    
+  } else {
+  
+    set_scale("#scale_div",1);
+  }
+}
+
+// set_mode_scale();
+
+let timecount = 0;
+let timeout = 100;
+var mode = "flick";
+
+// alert($("#show_hide_data_1").val());
+
+var show_hide = JSON.parse($("#show_hide_data_1").val());
+// console.log("show_hide="+show_hide["#c1"]);
+
+
+function takelog() {
+
+  console.log("mode="+mode);
+  let d3 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("nqu").value.real;
+
+  if (mode=="flick") {
+  
+    let d1 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("startposf").value.real;
+    if (d1 != 0) {
+      let d2 = $("#log").val();
+      let d4 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("hyoujif").value.real;
+//      let d4 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("hyoujifa").value.real;
+      $("#log").val(d2+"\n"+d3+","+d4);
+      timecount = timecount+1;
+    }
+    
+  } else {
+  
+    let d2 = $("#log").val();
+    let d4 = -1;
+    $("#log").val(d2+"\n"+d3+","+d4);
+    timecount = timecount+1;
+    
+  }
+  
+  for (let key in show_hide) {
+    if (show_hide[key].indexOf(d3) >= 0) {
+       $(key).show();
+    } else {
+       $(key).hide();
+    }
+  }
+
+}
+
+const intervalId = setInterval(() =>{
+    takelog();
+    if(timecount > timeout){
+      clearInterval(intervalId);
+    }}, 
+1000);
+
+/*
+eval(getatr("onoff","tmp"));
+if (tmp=="on") {
+  eval(bgcolor(44,125,212,0.3));
+  eval(setatr("onoff","off"));
+} else {
+  eval(bgcolor(44,125,212,1));
+  eval(setatr("onoff","on"));
+}
+
+
+
+url = this.parentNode.querySelector('.palette_button_text_text').value;
+window.open(url,"_blank");
+
+
+});
+*/
+
+function bgcolor(r,g,b,a) {
+
+/*
+  let com = "this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';";
+  eval(com);
+*/
+//  return("this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';");
+
+//  eval("this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';");
+
+  Palette_Body.target.style.background = "rgba("+r+","+g+","+b+","+a+")";
+
+}
+
+function setstring(str) {
+
+//  return("this.parentNode.querySelector('.palette_button_body').value='"+str+"';");
+
+  Palette_Body.target.value = str;
+}
+
+function setatr(atr,val) {
+
+//  return("this.parentNode.querySelector('.palette_button_body').setAttribute('"+atr+"','"+val+"');");
+  Palette_Body.target.setAttribute(atr,val);
+  
+}
+
+function getatr(atr) {
+
+//  return(varname+"=this.parentNode.querySelector('.palette_button_body').getAttribute('"+atr+"');");
+  return(Palette_Body.target.getAttribute(atr));
+}
+
+function setstyle(prop,val) {
+
+  $(Palette_Body.target).css(prop,val);
+//  eval('Palette_Body.target.style.'+prop+' = "'+val+'"');
+  
+}
+
+function getstyle(prop) {
+
+//  let getStyle = getComputedStyle(Palette_Body.target);
+//  return(eval('getStyle.'+prop));
+  return($(Palette_Body.target).css(prop));
+  
+}
+
+function getparentstyle() {
+
+  return(this.parentNode.getAttribute("style"));
+  
+}
+
+/*
+
+link(gettext());
+
+*/
+
+function gettext() {
+
+  return(Palette_Body.target.value);
+
+}
+
+function link(url) {
+
+  window.open(url,'_blank');
+  
+}
+
+window.onload = function() {
+
+//  startcindy();
+  Palette.mode_set("user");
+
+}
+</script>
+
+</div>
+
+</body></html>
