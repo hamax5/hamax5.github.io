@@ -1,0 +1,734 @@
+<html><head>
+    <meta charset="utf-8">
+    <title>Canvas Paint Tool</title>
+    
+
+<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!--   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/material-design-inspired-color-picker@1.7.2/dist/md-color-picker.min.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/FileSaver.min.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette_3c.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/algebrite/algebrite.bundle-for-browser.js"></script>
+
+<link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/CindyJS.css">
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/CindyJS/Cindy.js"></script>
+
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Converter.js"></script>
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Sanitizer.js"></script>
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Editor.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML-full"></script>
+  
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/MJPDEditing.js"></script>
+
+        <script>
+            MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+                tex2jax: { inlineMath: [ ["$", "$"], ["\\\\(","\\\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+                TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+                messageStyle: "none"
+            });
+        </script>
+
+</head>
+
+<!--
+<body style="transform: scale(1.2); transform: scale(2);">
+<body style="transform: scale(1.625,1.625) translate(250px,0px);">
+<body style="transform: scale(1.45,1.45) translate(150px,0px);">
+-->
+<body>
+
+ <div id="scale_div" style="position: absolute; transform-origin: 0px 0px; transform: scale(1);">
+<!--
+<iframe id="test_iframe" src="file:///C:/data/EPS4/cresco_oekaki/sugaku1.png" target="_blank rel="noreferrer noopener" width="1000" height="1600"></iframe>
+-->
+
+<input type="button" value="flick" onclick="mode='flick'; Palette.load_url_width($('#url1')[0],'#test_iframe'); set_cood('#b0',46,831);">
+<input type="button" value="keyboard" onclick="mode='keyboard'; Palette.load_url_width($('#url2')[0],'#test_iframe'); set_cood('#b0',78,612);">
+
+<div id="top_display" style="display: flex;">
+
+  <div id="iframe1">
+<!--   <iframe id="test_iframe" src="kettaskorgvF1223.html" target="_blank rel=" noreferrer="" noopener"="" width="660" height="3000" style="pointer-events: auto;"></iframe> -->
+    <iframe id="test_iframe" src="kettaskv001F0319a.html" target="_blank rel=" noreferrer="" noopener"="" width="670" height="2000" style="pointer-events: auto;"></iframe>
+  </div>
+  
+<!--  <div id="test" height="3000" class="painton" style="top: 0px; left: 0; margin: auto; position: absolute; height: 3000px;  pointer-events: auto;"> -->
+  <div id="test" class="painton" style="top: 0px; left: 0; margin: auto; position: absolute;  pointer-events: auto;">
+
+
+<div id="b0" class="palette body top button" index="1" style="top: 831px; left: 46px; position: absolute;">
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 73px; height: 50.3333px; top: 0px; left: 0px;" value="Rec"><input type="button" class="palette body move button" value="i: b0" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 43px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 50.3333px; left: 43px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 50.3333px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 73px; display: none;">copy_data();</textarea></div><div id="c1" class="palette body top cindy" index="1" style="top: 219px; left: 425px; position: absolute; display: block;">
+    <div id="CSCanvas_1" class="CindyJS-widget palette body target cindy" style="position: relative; width: 203px; height: 159px;"><canvas style="position: absolute; border: none; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 100%; width: 100%; background-color: rgb(168, 176, 192);" width="380" height="298"></canvas><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: c1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 173px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 159px; left: 173px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 159px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 203px; display: none;"></textarea></div><div id="b1" class="palette body top button" index="2" style="top: 306px; left: 323px; position: absolute;">
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 85px; height: 30px; top: 0px; left: 0px;" value="Plot"><input type="button" class="palette body move button" value="i: b1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 55px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 55px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 85px; display: none;">var fx = get_ketmath_input_raw();
+var fx1 = fx.split("=")[1];
+var fx2 = cseval('c1','Tocindyform("'+fx1+'")');
+var com = "plot(x*x-3*x); plot("+fx2+")";
+csdraw('c1',com);
+</textarea></div><div id="f1" class="palette body top img" index="1" style="top: 230px; left: 101px; position: absolute; display: none;">
+    <img src="data:image/png;base64,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" class="palette body target img" style="width: 194px; height: auto; position: absolute; top: 0px; left: 0px; border: solid;"><input type="button" class="palette body move img" value="i: f1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser img" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 164px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size img" value="s" style="position: absolute; width: 30px; height: 30px; top: 46px; left: 164px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit img" value="e" style="position: absolute; width: 30px; height: 30px; top: 46px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe img" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta img" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 194px; display: none;"></textarea></div><div class="palette body top textarea" index="1" style="top: 125px; left: 126.867px; position: absolute;">
+    <textarea class="palette textarea target" style="position: absolute; width: 120px; height: 50px; top: 0px; left: 0px;"></textarea><input type="button" class="palette body move textarea" value="" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser textarea" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size textarea" value="s" style="position: absolute; width: 30px; height: 30px; top: 50px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit textarea" value="e" style="position: absolute; width: 30px; height: 30px; top: 50px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><input type="button" class="palette body exe textarea" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta textarea" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; display: none;">csdraw("c1",gettext());</textarea></div></div>
+
+
+<div>
+
+
+<div class="menu" style="">
+
+    <div>
+      <input type="button" value="保存" onclick="Palette.save()">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="button" onclick="Palette.gen_button('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+      <input type="text" class="selector" size="3">
+      図:
+      <input type="file" onchange="Palette.upload_image(this,'test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="text" onclick="Palette.gen_text('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="text2" onclick="Palette.gen_text2('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="textarea" onclick="Palette.gen_textarea('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="markdown" onclick="Palette.gen_markdown('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="radio" onclick="Palette.gen_radio('test',this.parentElement.querySelector('.selector').value, this.parentElement.querySelector('.radiochoice').value)">
+      <input type="text" class="radiochoice" size="3">
+    </div>
+    <div>
+      <input type="text" class="selector" size="3">
+      Cinderella:
+       <input type="file" onchange="Palette.upload_cinderella(this,'test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="compound" onclick="Palette.gen_compound('test',this.parentElement.querySelector('.selector').value, this.parentElement.querySelector('.elt').value)">
+      <input type="text" class="elt" size="3">
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+    
+<div>
+      <input type="button" value="モード切り替え" onclick="Palette.mode_change(); set_mode_scale();">
+</div>
+
+
+<div class="system_area" style="">
+
+<div class="paint_url" name="url1" style="">
+URL1:
+<input class="paint_url_data" type="text" size="50" value="kettaskv001F0319a.html">
+<input class="paint_url_width" type="text" size="5" value="670">
+ <!-- <input type="button" class="paint_url_click" value="ロード"> -->
+ <!-- <input id="url1" type="button" onclick="Palette.load_url(this,'#test_iframe')" value="load"> -->
+<input id="url1" type="button" onclick="Palette.load_url_width(this,'#test_iframe'); set_cood('#b0',46,831);" value="load">
+    </div>
+
+<div class="paint_url" name="url2" style="">
+URL2:
+<input class="paint_url_data" type="text" size="50" value="kettaskv0529-1.html">
+<input class="paint_url_width" type="text" size="5" value="815">
+<!-- <input type="button" class="paint_url_click" value="ロード"> -->
+<!-- <input id="url2" type="button" onclick="Palette.load_url(this,'#test_iframe')" value="load">  -->
+<input id="url2" type="button" onclick="Palette.load_url_width(this,'#test_iframe'); set_cood('#b0',78,612);" value="load">
+</div>
+
+<div class="show_hide" style="">
+表示設定:
+<input class="show_hide_data" id="show_hide_data_1" type="text" size="50" value="{ &quot;#c1&quot;:[2,3], &quot;#b1&quot;:[2,3], &quot;#f1&quot;:[2]}">
+</div>
+
+<div class="logname" style="">
+log名:
+<input class="logname_data" id="logname_data_1" type="text" size="50" value="kaiseki1">
+</div>
+
+<div>
+<textarea id="log" style="width: 166px; height: 37px;"></textarea>
+</div>
+
+<div id="system_init" style="display:none;">
+System init:<br>
+<textarea id="system_init_textarea" cols="80" rows="10">
+Palette_Cindy.cinderella_code[1]=`Palette_Cindy.cinderella_obj[1] = CindyJS({"scripts":"cs*","defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","ports":[{"id":"CSCanvas_1","width":203,"height":159,"transform":[{"visibleRect":[-9.06,9.34,14.1,-4.14]}],"axes":true,"grid":1,"background":"rgb(168,176,192)"}],"csconsole":false,"cinderella":{"build":2071,"version":[3,0,2071]}});`;
+eval(Palette_Cindy.cinderella_code[1]);
+Palette_Cindy.cinderella_json[1]=`{"scripts":"cs*","defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","ports":[{"id":"CSCanvas_1","width":203,"height":159,"transform":[{"visibleRect":[-9.06,9.34,14.1,-4.14]}],"axes":true,"grid":1,"background":"rgb(168,176,192)"}],"csconsole":false,"cinderella":{"build":2071,"version":[3,0,2071]}}`;
+Palette_Cindy.cinderella_init[1]="csdraw() := (\n//Script (CindyScript)\nplot(x*x-3*x);\n);\n";
+Palette_Cindy.cinderella_obj[1].evokeCS(Palette_Cindy.cinderella_init[1]);</textarea>
+</div>
+
+</div>
+
+<script id="csdraw" type="text/x-cindyscript">
+csdraw();
+</script>
+
+<script id="csmove" type="text/x-cindyscript">
+csmove();
+</script>
+
+<script id="csinit" type="text/x-cindyscript">
+csdraw() := ();
+csmove() := ();
+
+Tocindyform(str):=(
+  regional(plv,funL,repL,out,sub,head,flg,rep,fun,pre,post,ctr,clv,nn,
+      sharpL,tmp,tmp1,tmp2,tmp3,tmp4);
+  repL=[ //190515from
+    ["fr(",["","(xx)/(yy)"]],
+    ["log(",["{log}(xx)","{log}(yy)/{log}(xx)"]], //220520
+    ["sq(",["{sqrt}(xx)","(yy)^(1/(xx))"]], //190522
+    ["po(",["","(xx)^(yy)"]],
+    ["sin(",["{sin}(xx)","{sin}(yy)^(xx)"]], //190522from
+    ["cos(",["{cos}(xx)","{cos}(yy)^(xx)"]],
+    ["tan(",["{tan}(xx)","{tan}(yy)^(xx)"]],
+    ["pi(",["{pi}()"]] //190522to
+  ];
+  out=replace(str,"(!","("); //210816,211118
+  out=replace(out,"pi","pi()"); //210805
+  out=replace(out,"tfr(","fr("); //220523
+  out=replace(out," ",""); //220617
+  out=replace(out,"(cross)","*"); //220615
+  tmp1=""; //210817from
+  flg=0;
+  forall(1..(length(out)),
+    tmp=out_#;
+    if(contains(["[","]"],tmp),
+      if(tmp=="[",flg=1);
+      if(tmp=="]",flg=0);
+    ,
+      if(flg==0,tmp1=tmp1+tmp);
+    );
+  );
+  out=tmp1; //210817to
+  out=Removespace(out);
+  head="";
+  flg=0;
+  plv=Bracket(out,"()");
+  if(length(plv)>0,
+    if(plv_1_2==0,
+      head=substring(out,0,plv_1_1);
+      out=substring(out,plv_1_1,length(out));
+      if(substring(out,0,1)=="*",out=substring(out,1,length(out)));
+      plv=Bracket(out,"()");
+    );
+    tmp=plv_(-1);
+    if(tmp_2!=-1,
+      out=str;
+      flg=1;
+    );
+  );
+  sharpL=[];
+  ctr=1;
+  if(flg==0,
+    forall(repL,rep,
+      fun=rep_1;
+      tmp=indexof(out,fun);
+      while((tmp>0)&(ctr<100),
+        pre=substring(out,0,tmp-1);
+        out=substring(out,tmp-1,length(out));
+        plv=Bracket(out,"()");
+        tmp=select(plv,#_2==-1);
+        tmp=tmp_1;
+        post=substring(out,tmp_1,length(out));
+        out=substring(out,0,tmp_1);
+        clv=Getlevel(out);
+        clv=select(clv,#_2==1);
+        nn=length(clv)+1;
+        if(nn==1,
+          tmp1=substring(out,plv_1_1,length(out)-1);
+          out=replace(rep_2_1,"xx",tmp1);
+        );
+        if(nn==2,
+          tmp1=substring(out,plv_1_1,clv_1_1-1);
+          tmp2=substring(out,clv_1_1,length(out)-1);
+          tmp=replace(rep_2_2,"xx",tmp1);
+          out=replace(tmp,"yy",tmp2);
+        );
+        out=pre+out+post;        
+        tmp1=indexof(out,"{"); //220520from
+        tmp2=indexof(out,"}");
+        sub=substring(out,tmp1,tmp2-1);
+        tmp="#"+text(ctr)+"#";
+        out=replace(out,"{"+sub+"}",tmp); //220520to
+        sharpL=append(sharpL,[tmp,sub]);
+        tmp=indexof(out,fun); //220513
+        ctr=ctr+1;
+      );
+    );
+  );
+  out=Addasterisk(out);
+  out=replace(out,"()","");
+  forall(reverse(sharpL),
+    out=replace(out,#_1,#_2);
+  );
+  out=head+out;
+  out=replace(out,"e^","(exp(1))^"); //220610
+  out;
+);
+Addasterisk(strorg):=(
+  regional(str,out,sgnL,numL,alphaL,numalpha,ctr,
+      pre,now,tmp,tmp1,tmp2);
+  str=Removespace(strorg);
+  str=replace(str,"  ","*");
+  sgnL=["+","-","*","/","^"];
+  numL=append(apply(0..9,text(#)),"."); //210226
+  tmp1=32..126;
+  tmp=(65..90)++(97..122);
+  tmp1=remove(tmp1,tmp);
+  alphaL=apply(tmp,unicode(text(#),base->10));
+  numalpha=numL++alphaL;
+  out=""; pre="@";
+  while(length(str)>0,
+    now=str_1;
+    str=substring(str,1,length(str));
+    if(now=="#",
+      if(contains(numalpha++[")"],pre),out=out+"*");
+      tmp=indexof(str,"#");
+      out=out+"#"+substring(str,0,tmp-1);
+      str=substring(str,tmp,length(str));
+    );    
+    if(contains(numL,now),
+      if(contains(alphaL++[")"],pre),out=out+"*");
+    );
+    if(contains(alphaL++["("],now),
+      if(contains(numalpha++[")"],pre),out=out+"*");
+    );
+    out=out+now;
+    pre=now;
+  );
+  out;
+);
+Removespace(str):=(
+  regional(tmp,flg,out);
+  tmp=length(str)+1;
+  flg=0;
+  forall(1..(length(str)),
+    if(flg==0,
+      if((str_#)!=" ",
+        tmp=#;
+        flg=1;
+      );
+    );
+  );
+  out=substring(str,tmp-1,length(str));
+  flg=0;
+  tmp=0;
+  forall(reverse(1..(length(out))),
+    if(flg==0,
+      if((out_#)!=" ",
+        tmp=#;
+        flg=1;
+      );
+    );
+  );
+  out=substring(out,0,tmp);
+);
+Bracket(str):=Bracket(str,"()");
+Bracket(str,br):=(
+  regional(ph,pt,out,noL,ncL,nall,level,tmp);
+  ph=substring(br,0,1);
+  pt=substring(br,1,2);
+  noL=Indexall(str,ph);
+  ncL=Indexall(str,pt); // 16.05.22until
+  nall=sort(concat(noL,ncL));
+  level=0;
+  out=[];
+  forall(nall,
+    if(contains(noL,#),
+      level=level+1;
+      tmp=[#,level];
+    ,
+      tmp=[#,-level];
+      level=level-1;
+    );
+    out=append(out,tmp);
+  );
+  out;
+);
+Indexall(str,key):=(
+  regional(rest,out,flg,tmp,tmp1,);
+  out=[];
+  rest=str;
+  flg=0;
+  forall(1..(length(str)),
+    if(flg==0,
+      tmp=indexof(rest,key);
+      if(tmp>0,
+        tmp1=tmp+length(str)-length(rest);
+        out=append(out,tmp1);
+        rest=substring(rest,tmp,length(rest));
+      ,
+        flg=1;
+      );
+    );
+  );
+  out;
+);
+
+</script>
+
+<!--
+<script id="csinit" type="text/x-cindyscript">
+csdraw() := (
+  plot(x*x-3*x);
+);
+</script>
+-->
+
+
+<script>
+
+function set_cood(selector,x,y) {
+
+  console.log("set_cood: selector="+selector+", x="+x+", y="+y);
+
+  $(selector).css("left",String(x)+"px");
+  $(selector).css("top",String(y)+"px");
+  
+}
+
+function submit_data(ansdata,logname,fname,funame) {
+
+/*
+  let con = confirm("問題の解答とキー入力のログをサーバーに送り、課題を終了しますが、それで良いですか？");
+  if (!(con)) {
+    return(0);
+  }
+*/
+
+/*
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  let logname = document.querySelector("#logname_data_1").value;
+  let fname = "ketlms/"+ logname + ".log";
+*/
+  let url = "https://ktky.sakura.ne.jp/file/recieve_data6.php";
+  let com = {};
+  com["data"] = ansdata;
+  com["filename"] = fname;
+  console.log("url"+url);
+  console.log("com="+com);
+  Palette.exec_url(url,com);
+  com = {};
+/*
+  let uname = ansdata.split(";;")[0];
+  fname = "ketlms/" + logname + "_" + uname + ".klog";
+*/
+  let logdata = document.querySelector("#log").value;
+  com["data"] = logdata;
+  com["filename"] = funame;
+  Palette.exec_url(url,com);
+
+}
+
+function file_check(fname) {
+
+  let url = "https://ktky.sakura.ne.jp/file/file_check.php";
+  let com = {};
+  com["filename"] = fname;
+  let ans = Palette.exec_url(url,com);
+  let mans = ans.match(/<body>\r?\n([\s\S]*?)\r?\n<\/body>/);
+  return mans[1];
+  
+}
+
+function check_submit_data() {
+
+  let con = confirm("問題の解答とキー入力のログをサーバーに送り、課題を終了しますが、それで良いですか？");
+  if (!(con)) {
+    return(0);
+  }
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  let logname = document.querySelector("#logname_data_1").value;
+  let fname = "ketlms/"+ logname + ".log";
+  let uname = ansdata.split(";;")[0];
+  let funame = "ketlms/" + logname + "_" + uname + ".klog";
+  console.log("check_submit_data fname="+fname);
+  let ans = file_check(funame);
+  if (ans == "TRUE") {
+    alert("課題は既に提出されています");
+  } else {
+    submit_data(ansdata,logname,fname,funame);
+  }
+  
+
+}
+
+function copy_data() {
+
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  alert("ansdata="+ansdata);
+  navigator.clipboard.writeText(ansdata);
+  alert("解答の文字列がバッファへコピーされました");
+
+}
+
+// let epagew = Number(document.querySelector('.paint_url + div[name="url1"]').querySelector('.paint_url_width').value);
+// let epagew = Number(document.querySelector('div[name="url1"]').querySelector('.paint_url_width').value);
+let epagew = Number(document.querySelector('div[name="url1"] > .paint_url_width').value);
+console.log("epagew = "+epagew);
+
+function HtmlString_To_Document(text){
+  try{
+    var dom_parser = new DOMParser();
+    var document_obj = dom_parser.parseFromString(text , "text/html");
+    if(document_obj.getElementsByTagName("parsererror").length == 0){
+      return document_obj;
+    }
+  }catch(e){
+  }
+
+  try{
+    var document_obj = document.implementation.createHTMLDocument("");
+    document_obj.body.innerHTML = text;
+    return document_obj;
+  }catch(e){
+  }
+
+  return null;
+}
+
+function set_scale(selector,scale) {
+  
+ $(selector).css({ 'transform-origin' : '0 0','transform' : 'scale('+scale+')'});
+
+}
+
+/*
+function getViewportSize() {
+  const w1 = document.documentElement.clientWidth,
+  w2 =  window.innerWidth,
+  h1 = document.documentElement.clientHeight,
+  h2 = window.innerHeight;
+        
+  alert("w1="+w1+", w2="+w2+", h1="+h1+",h2="+h2);
+  
+}
+*/
+
+// getViewportSize();
+
+set_scale("#scale_div",(document.documentElement.clientWidth)/epagew);
+// set_scale("#scale_div",1);
+function set_mode_scale() {
+
+  if (Palette.mode == "user") {
+  
+    set_scale("#scale_div",(document.documentElement.clientWidth)/epagew);
+    
+  } else {
+  
+    set_scale("#scale_div",1);
+  }
+}
+
+// set_mode_scale();
+
+let timecount = 0;
+let timeout = 100;
+var mode = "flick";
+
+// alert($("#show_hide_data_1").val());
+
+var show_hide = JSON.parse($("#show_hide_data_1").val());
+// console.log("show_hide="+show_hide["#c1"]);
+
+
+function takelog() {
+
+  console.log("mode="+mode);
+  let d3 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("nqu").value.real;
+
+  if (mode=="flick") {
+  
+    let d1 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("startposf").value.real;
+    if (d1 != 0) {
+      let d2 = $("#log").val();
+      let d4 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("hyoujif").value.real;
+//      let d4 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("hyoujifa").value.real;
+      $("#log").val(d2+"\n"+d3+","+d4);
+      timecount = timecount+1;
+    }
+    
+  } else {
+  
+    let d2 = $("#log").val();
+    let d4 = -1;
+    $("#log").val(d2+"\n"+d3+","+d4);
+    timecount = timecount+1;
+    
+  }
+  
+  for (let key in show_hide) {
+    if (show_hide[key].indexOf(d3) >= 0) {
+       $(key).show();
+    } else {
+       $(key).hide();
+    }
+  }
+
+}
+
+const intervalId = setInterval(() =>{
+    takelog();
+    if(timecount > timeout){
+      clearInterval(intervalId);
+    }}, 
+1000);
+
+/*
+eval(getatr("onoff","tmp"));
+if (tmp=="on") {
+  eval(bgcolor(44,125,212,0.3));
+  eval(setatr("onoff","off"));
+} else {
+  eval(bgcolor(44,125,212,1));
+  eval(setatr("onoff","on"));
+}
+
+
+
+url = this.parentNode.querySelector('.palette_button_text_text').value;
+window.open(url,"_blank");
+
+
+});
+*/
+
+function bgcolor(r,g,b,a) {
+
+/*
+  let com = "this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';";
+  eval(com);
+*/
+//  return("this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';");
+
+//  eval("this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';");
+
+  Palette_Body.target.style.background = "rgba("+r+","+g+","+b+","+a+")";
+
+}
+
+function setstring(str) {
+
+//  return("this.parentNode.querySelector('.palette_button_body').value='"+str+"';");
+
+  Palette_Body.target.value = str;
+}
+
+function setatr(atr,val) {
+
+//  return("this.parentNode.querySelector('.palette_button_body').setAttribute('"+atr+"','"+val+"');");
+  Palette_Body.target.setAttribute(atr,val);
+  
+}
+
+function getatr(atr) {
+
+//  return(varname+"=this.parentNode.querySelector('.palette_button_body').getAttribute('"+atr+"');");
+  return(Palette_Body.target.getAttribute(atr));
+}
+
+function setstyle(prop,val) {
+
+  $(Palette_Body.target).css(prop,val);
+//  eval('Palette_Body.target.style.'+prop+' = "'+val+'"');
+  
+}
+
+function getstyle(prop) {
+
+//  let getStyle = getComputedStyle(Palette_Body.target);
+//  return(eval('getStyle.'+prop));
+  return($(Palette_Body.target).css(prop));
+  
+}
+
+function getparentstyle() {
+
+  return(this.parentNode.getAttribute("style"));
+  
+}
+
+/*
+
+link(gettext());
+
+*/
+
+function gettext() {
+
+  return(Palette_Body.target.value);
+
+}
+
+function link(url) {
+
+  window.open(url,'_blank');
+  
+}
+
+window.onload = function() {
+
+//  startcindy();
+  Palette.mode_set("user");
+
+}
+
+function get_ketmath_input_raw() {
+
+  return(document.getElementById('test_iframe').contentWindow.cdy.evalcs('Text2').value.text);
+
+}
+
+function get_ketmath_input() {
+
+  return(get_ketmath_input_raw().split("=")[1]);
+
+}
+
+function cseval(cindyname,com) {
+
+  let idx = Number($("#"+cindyname).attr("index"));
+  return(Palette_Cindy.cinderella_obj[idx].evalcs(com).value);
+
+}
+
+function csdraw(cindyname,com) {
+
+  let idx = Number($("#"+cindyname).attr("index"));
+  Palette_Cindy.cinderella_obj[idx].evokeCS("csdraw():=("+com+")");
+
+}
+
+</script>
+
+</div>
+
+</body></html>
