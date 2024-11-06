@@ -3845,7 +3845,7 @@ Setketcindyjs(["Label=[S]","Color=offwhite"]);
 Setax(["l","x","e2","y","n3","O","s2w2"]);
 
 
-Slider("S",[-4,-2],[4,-2]);
+Slider("S",[-4,-2],[3,-2]);
 
 
 Deffun("f(x)",["regional(y)","y=-x-1+2*exp(x)","y"]);
@@ -3861,8 +3861,8 @@ Deffun("f1(x)",["regional(y)","y=coef*(x-P.x)+P.y","y"]);
 Q=[P.x+1,f1(P.x+1)];
 
 R=[P.x+1,P.y];
-Letter([3,3],"e","P$("+text(P.x)+", "+text(P.y)+")$");
-Expr([3,2],"e","\frac{dy}{dx}="+text(coef));
+Letter([-3.5,4.5],"e","P$("+text(P.x)+", "+text(P.y)+")$");
+Expr([-3.5,3.8],"e","\frac{dy}{dx}="+text(coef));
 
 
 Listplot("PQR",[P,R,Q],["dr,2","Color=blue"]);
@@ -3912,22 +3912,23 @@ var cdy = CindyJS({
   angleUnit: "°",
   geometry: [
     {name: "SW", type: "Free", pos: [4.0, 1.5, -1.0], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "NE", type: "Free", pos: [-3.2, -4.0, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "P", type: "Free", pos: [-1.1290239222137797, -4.0, -2.1649847539049114], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
-    {name: "A", type: "Free", pos: [-1.7223269202738871, -4.0, 0.1312353674656236], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
-    {name: "S", type: "Free", pos: [1.0429855639190035, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
+    {name: "NE", type: "Free", pos: [-2.4, -4.0, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
+    {name: "P", type: "Free", pos: [-1.1722498057448258, -4.0, -1.9668893137362324], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
+    {name: "A", type: "Free", pos: [-1.5419476773320235, -4.0, 0.11749109165364123], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
+    {name: "S", type: "Free", pos: [1.1919835016217177, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
   ],
   ports: [{
-    width: 556,
-    height: 409,
+    width: 472,
+    height: 425,
     id: "CSCanvas",
-    transform: [{visibleRect: [-4.888994830870329, 5.391862870616992, 5.46636183946835, -2.2256566944343024]}],
+    transform: [{visibleRect: [-4.888994830870329, 5.391862870616992, 3.901883493589844, -2.523652569839732]}],
     grid: 1.0,
+    snap: true,
     background: "rgb(247,247,247)"
   }],
   csconsole: false,
   use: ["katex"],
-  cinderella: {build: 2080, version: [3, 0, 2080]}
+  cinderella: {build: 2083, version: [3, 0, 2083]}
 });
     </script>
 </head>
