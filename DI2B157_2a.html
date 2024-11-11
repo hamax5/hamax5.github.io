@@ -3440,8 +3440,7 @@ Ketinit();
 Setparent(Cdyname()+"fig");
 Setketcindyjs(["Label=[S]","Color=offwhite"]);
 Setax(["l","x","e2","y","n3","O","s2w2"]);
-Slider("S",[0,-5.5],[4,-5.5],["Color=red","Thick=2"]);
-Pointdata("S",S,["Color=red","Size=10"]);
+Slider("S",[0.5,-3.5],[4,-3.5],["Color=red","Thick=2"]);
 
 f(x):=x^2/6;
 
@@ -3482,14 +3481,14 @@ var cdy = CindyJS({
   geometry: [
     {name: "SW", type: "Free", pos: [4.0, 4.0, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
     {name: "NE", type: "Free", pos: [4.0, 4.0, 0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "P", type: "Free", pos: [4.0, 2.3388699581193326, 1.1401517461068733], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
-    {name: "S", type: "Free", pos: [2.5514944997665445, -4.0, 0.7272727272727273], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
+    {name: "P", type: "Free", pos: [4.0, 2.6666666666666665, 1.0], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
+    {name: "S", type: "Free", pos: [4.0, -3.5, 1.0], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
   ],
   ports: [{
-    width: 1026,
+    width: 811,
     height: 643,
     id: "CSCanvas",
-    transform: [{visibleRect: [-9.463190948969563, 5.437872652627388, 9.48165571179682, -6.434969845299303]}],
+    transform: [{visibleRect: [-7.524390852107507, 5.770238383518026, 7.450531800798476, -6.102604114408665]}],
     grid: 1.0,
     background: "rgb(247,247,247)"
   }],

@@ -3756,7 +3756,7 @@ Ketinit();
 Setparent(Cdyname()+"fig");
 Setketcindyjs(["Label=[S]","Color=offwhite"]);
 Setax(["l","x","e2","y","n3","O","s2w2"]);
-Slider("S",[-4,-1.5],[3,-1.5]);
+Slider("S",[-4,-2],[4,-2],["Thick=2","Color=red"]);
 
 f(x):=-x-1+2*exp(x);
 Plotdata("1","f(x)","x",["Num=200"]);
@@ -3798,6 +3798,7 @@ if(P.x>-0.2,
 
 Figpdf();
 Windispg();
+Help("Slider");
 ;
 
 </script>
@@ -3814,17 +3815,17 @@ var cdy = CindyJS({
   },
   angleUnit: "°",
   geometry: [
-    {name: "SW", type: "Free", pos: [4.0, 1.0, -1.0], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "NE", type: "Free", pos: [-1.5843520782396832, -4.0, -0.5251053135920918], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "P", type: "Free", pos: [-1.0528886276860936, -4.0, -2.4128636221064235], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
+    {name: "SW", type: "Free", pos: [4.0, 2.4, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
+    {name: "NE", type: "Free", pos: [-2.5, -4.0, -0.5], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
+    {name: "P", type: "Free", pos: [-1.139104580526898, -4.0, -2.124712886655471], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
     {name: "A", type: "Free", pos: [-1.5419476773320078, -4.0, 0.11749109165364004], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
-    {name: "S", type: "Free", pos: [1.1636393294005565, -4.0, 2.6666666666666665], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
+    {name: "S", type: "Free", pos: [1.0722433018420408, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
   ],
   ports: [{
-    width: 1121,
-    height: 627,
+    width: 757,
+    height: 610,
     id: "CSCanvas",
-    transform: [{visibleRect: [-10.584582233384884, 9.123025213737924, 11.418056353830101, -3.1835353519924916]}],
+    transform: [{visibleRect: [-7.396106838934722, 8.498552645695401, 7.267377817526321, -3.3174653733815296]}],
     grid: 1.0,
     background: "rgb(247,247,247)"
   }],
