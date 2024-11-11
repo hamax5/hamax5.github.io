@@ -3768,8 +3768,8 @@ Plotdata("2","f1(x)","x",["Num=1","dr,0.8","Color=blue"]);
 
 Q=[P.x+1,f1(P.x+1)];
 R=[P.x+1,P.y];
-Letter([-4,5.5],"e","P$("+text(P.x)+", "+text(P.y)+")$");
-Expr([-4,4.5],"e","\dfrac{dy}{dx}="+text(coef));
+Letter([-4,5.5],"e","P$("+format(P.x,2)+", "+format(P.y,2)+")$");
+Expr([-4,4.5],"e","\dfrac{dy}{dx}="+format(coef,2));
 
 Listplot("PQR",[P,R,Q],["dr,2","Color=blue"]);
 Listplot("1",[[P.x,0],P,[0,P.y]],["do"]);
@@ -3817,15 +3817,15 @@ var cdy = CindyJS({
   geometry: [
     {name: "SW", type: "Free", pos: [4.0, 2.4, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
     {name: "NE", type: "Free", pos: [-2.5, -4.0, -0.5], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "P", type: "Free", pos: [-1.139104580526898, -4.0, -2.124712886655471], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
+    {name: "P", type: "Free", pos: [-1.1391045805268842, -4.0, -2.1247128866555265], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
     {name: "A", type: "Free", pos: [-1.5419476773320078, -4.0, 0.11749109165364004], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
-    {name: "S", type: "Free", pos: [1.0722433018420408, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
+    {name: "S", type: "Free", pos: [1.072243301842, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
   ],
   ports: [{
     width: 757,
-    height: 610,
+    height: 617,
     id: "CSCanvas",
-    transform: [{visibleRect: [-7.396106838934722, 8.498552645695401, 7.267377817526321, -3.3174653733815296]}],
+    transform: [{visibleRect: [-7.389853892258769, 8.493973608795466, 7.273630764202275, -3.457638059680708]}],
     grid: 1.0,
     background: "rgb(247,247,247)"
   }],
