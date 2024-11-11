@@ -3440,11 +3440,11 @@ Ketinit();
 Setparent(Cdyname()+"fig");
 Setketcindyjs(["Label=[S]","Color=offwhite"]);
 Setax(["l","x","e2","y","n3","O","s2w2"]);
-Slider("S",[0,-4.5],[4,-4.5]);
+Slider("S",[0,-5.5],[4,-5.5]);
 
 f(x):=x^2/6;
 
-Plotdata("1","f(x)","x=[0.6,4.5]",["Num=200"]);//*********
+Plotdata("1","f(x)","x=[0.7,4.5]",["dr,2","Num=200"]);//*********
 Putpoint("P",[S.x,f(S.x)]);
 Pointdata("1",P,["Size=5","Color=blue"]);
 coef=Derivative("f(x)","x",P.x);
@@ -3479,17 +3479,18 @@ var cdy = CindyJS({
   },
   angleUnit: "°",
   geometry: [
-    {name: "SW", type: "Free", pos: [4.0, 3.550628628197446, -0.8869687749351389], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "NE", type: "Free", pos: [-3.6, -4.0, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "P", type: "Free", pos: [4.0, 1.822715777976, 1.4630183701091433], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
-    {name: "S", type: "Free", pos: [2.430287703968, -4.0, 0.8888888888888888], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
+    {name: "SW", type: "Free", pos: [4.0, 4.0, -0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
+    {name: "NE", type: "Free", pos: [4.0, 4.0, 0.8], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
+    {name: "P", type: "Free", pos: [4.0, 2.2831308942662525, 1.1679867647376714], color: [1.0, 0.0, 0.0], labeled: false, size: 3.0, border: true },
+    {name: "S", type: "Free", pos: [2.490688248290457, -4.0, 0.7272727272727273], color: [1.0, 0.0, 0.0], labeled: true, size: 3.0, border: true }
   ],
   ports: [{
-    width: 532,
-    height: 588,
+    width: 1285,
+    height: 671,
     id: "CSCanvas",
-    transform: [{visibleRect: [-7.053066472645151, 6.050352452630975, 7.114984015169847, -9.609071770743496]}],
+    transform: [{visibleRect: [-11.928753949465385, 5.913746784475652, 11.79846628356074, -6.476109072614254]}],
     grid: 1.0,
+    snap: true,
     background: "rgb(247,247,247)"
   }],
   csconsole: false,
