@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html><head>
+    <meta charset="utf-8">
+    <title>Canvas Paint Tool</title>
+    
+
+<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!--   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/material-design-inspired-color-picker@1.7.2/dist/md-color-picker.min.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/FileSaver.min.js"></script>
+<!-- <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/palette_3s.js"></script> -->
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/palette_4r.js"></script>
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/algebrite/algebrite.bundle-for-browser.js"></script>
+
+<link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/CindyJS.css">
+<script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/CindyJS/Cindy.js"></script>
+
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Converter.js"></script>
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Sanitizer.js"></script>
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/Markdown.Editor.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML-full"></script>
+  
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/palette/MJPDEditing1.js"></script>
+
+        <script type="text/javascript" src="https://ktky.sakura.ne.jp/lib/jsSHA/sha1.js"></script>
+        
+        <script>
+            MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+                tex2jax: { inlineMath: [ ["$", "$"], ["\\\\(","\\\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+                TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } }, Macros: { href: "{}" } },
+                messageStyle: "none"
+            });
+        </script>
+
+
+</head>
+
+<!--
+<body style="transform: scale(1.2); transform: scale(2);">
+<body style="transform: scale(1.625,1.625) translate(250px,0px);">
+<body style="transform: scale(1.45,1.45) translate(150px,0px);">
+-->
+<body>
+
+ <div id="scale_div" style="position: absolute; transform-origin: 0px 0px; transform: scale(1);">
+<!--
+<iframe id="test_iframe" src="file:///C:/data/EPS4/cresco_oekaki/sugaku1.png" target="_blank rel="noreferrer noopener" width="1000" height="1600"></iframe>
+-->
+
+<input type="button" value="flick" onclick="mode='flick'; Palette.load_url_width($('#url1')[0],'#test_iframe'); set_cood('#b0',46,831);">
+<input type="button" value="keyboard" onclick="mode='keyboard'; Palette.load_url_width($('#url2')[0],'#test_iframe'); set_cood('#b0',78,612);">
+
+<div id="top_display" style="display: flex;">
+
+  <div id="iframe1">
+<!--   <iframe id="test_iframe" src="kettaskorgvF1223.html" target="_blank rel=" noreferrer="" noopener"="" width="660" height="3000" style="pointer-events: auto;"></iframe> -->
+    <iframe id="test_iframe" src="hyouji20250422b.html" target="_blank rel=" noreferrer="" noopener"="" width="670" height="2000" style="pointer-events: auto;"></iframe>
+  </div>
+  
+<!--  <div id="test" height="3000" class="painton" style="top: 0px; left: 0; margin: auto; position: absolute; height: 3000px;  pointer-events: auto;"> -->
+  <div id="test" class="painton" style="top: 0px; left: 0; margin: auto; position: absolute;  pointer-events: auto;">
+
+
+<div class="palette body top button" index="1" style="top: 176.781px; left: 504.469px; position: absolute;">
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 120px; height: 30px; top: 0px; left: 0px;"><input type="button" class="palette body move button" value="" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; resize: both; display: none;">callDifyViaProxy();
+
+</textarea></div><div id="md" class="palette body top markdown" index="1" style="top: 911.979px; left: 2.61458px; position: absolute;" suffix="_suffix_1">
+    <div class="palette markdown visible" style="margin-left: auto; margin-right: auto; position: absolute; top: 0px; left: 0px;">
+            <div id="wmd-button-bar_suffix_1" class="wmd-button-bar" style="display: none;"></div>
+            <div id="wmd-preview_suffix_1" class="wmd-preview palette markdown target" style="width: 654.615px; height: 1043.97px; margin-left: auto; position: absolute; top: 0px; left: 0px; background-color: rgb(255, 255, 255);"></div>
+        </div><input type="button" class="palette body move markdown" value="i: md" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser markdown" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 624.615px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size markdown" value="s" style="position: absolute; width: 30px; height: 30px; top: 1043.97px; left: 624.615px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit markdown" value="e" style="position: absolute; width: 30px; height: 30px; top: 1043.97px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe markdown" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta markdown" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 654.615px; resize: both; display: none;"></textarea><textarea class="palette body texta wmd-input markdown" rows="20" cols="80" value="" head="0" id="wmd-input_suffix_1" style="position: absolute; top: 0px; left: 654.615px; display: none;"></textarea><input type="button" class="palette body content markdown" value="c" style="position: absolute; width: 30px; height: 30px; top: 1043.97px; left: -30px; padding: 0px; font-size: 11px;"></div></div>
+
+
+<div>
+
+
+<div class="menu" style="">
+
+    <div>
+      <input type="button" value="保存" onclick="Palette.saveEdit()">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="button" onclick="Palette.gen_button('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+      <input type="text" class="selector" size="3">
+      図:
+      <input type="file" onchange="Palette.upload_image(this,'test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="text" onclick="Palette.gen_text('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="text2" onclick="Palette.gen_text2('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="textarea" onclick="Palette.gen_textarea('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="markdown" onclick="Palette.gen_markdown('test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="radio" onclick="Palette.gen_radio('test',this.parentElement.querySelector('.selector').value, this.parentElement.querySelector('.radiochoice').value)">
+      <input type="text" class="radiochoice" size="3">
+    </div>
+    <div>
+      <input type="text" class="selector" size="3">
+      Cinderella:
+       <input type="file" onchange="Palette.upload_cinderella(this,'test',this.parentElement.querySelector('.selector').value)">
+    </div>
+    <div>
+       <input type="text" class="selector" size="3">
+      <input type="button" value="compound" onclick="Palette.gen_compound('test',this.parentElement.querySelector('.selector').value, this.parentElement.querySelector('.elt').value)">
+      <input type="text" class="elt" size="3">
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+    
+<div>
+      <input type="button" value="モード切り替え" onclick="Palette.mode_change(); set_mode_scale();">
+</div>
+
+
+<div class="system_area" style="">
+
+<div class="paint_url" name="url1" style="">
+URL1:
+<input class="paint_url_data" type="text" size="50" value="hyouji20250422b.html">
+<input class="paint_url_width" type="text" size="5" value="670">
+ <!-- <input type="button" class="paint_url_click" value="ロード"> -->
+ <!-- <input id="url1" type="button" onclick="Palette.load_url(this,'#test_iframe')" value="load"> -->
+<input id="url1" type="button" onclick="Palette.load_url_width(this,'#test_iframe'); set_cood('#b0',46,831);" value="load">
+    </div>
+
+<div class="paint_url" name="url2" style="">
+URL2:
+<input class="paint_url_data" type="text" size="50" value="kettaskv0529-1.html">
+<input class="paint_url_width" type="text" size="5" value="815">
+<!-- <input type="button" class="paint_url_click" value="ロード"> -->
+<!-- <input id="url2" type="button" onclick="Palette.load_url(this,'#test_iframe')" value="load">  -->
+<input id="url2" type="button" onclick="Palette.load_url_width(this,'#test_iframe'); set_cood('#b0',78,612);" value="load">
+</div>
+
+<div class="show_hide" style="">
+表示設定:
+<input class="show_hide_data" id="show_hide_data_1" type="text" size="50" value="{}">
+</div>
+
+<div class="logname" style="">
+log名:
+<input class="logname_data" id="logname_data_1" type="text" size="50" value="kaiseki1">
+</div>
+
+<div>
+<textarea id="log" style="width: 166px; height: 37px;"></textarea>
+</div>
+
+<div id="system_init" style="display:none;">
+System init:<br>
+<textarea id="system_init_textarea" cols="80" rows="10">
+
+
+
+</textarea>
+</div>
+
+</div>
+
+<!--
+<script id="csinit" type="text/x-cindyscript">
+csdraw() := ();
+csmove() := ();
+
+Tocindyform(str):=(
+  regional(plv,funL,repL,out,sub,head,flg,rep,fun,pre,post,ctr,clv,nn,
+      sharpL,tmp,tmp1,tmp2,tmp3,tmp4);
+  repL=[ //190515from
+    ["fr(",["","(xx)/(yy)"]],
+    ["log(",["{log}(xx)","{log}(yy)/{log}(xx)"]], //220520
+    ["sq(",["{sqrt}(xx)","(yy)^(1/(xx))"]], //190522
+    ["po(",["","(xx)^(yy)"]],
+    ["sin(",["{sin}(xx)","{sin}(yy)^(xx)"]], //190522from
+    ["cos(",["{cos}(xx)","{cos}(yy)^(xx)"]],
+    ["tan(",["{tan}(xx)","{tan}(yy)^(xx)"]],
+    ["pi(",["{pi}()"]] //190522to
+  ];
+  out=replace(str,"(!","("); //210816,211118
+  out=replace(out,"pi","pi()"); //210805
+  out=replace(out,"tfr(","fr("); //220523
+  out=replace(out," ",""); //220617
+  out=replace(out,"(cross)","*"); //220615
+  tmp1=""; //210817from
+  flg=0;
+  forall(1..(length(out)),
+    tmp=out_#;
+    if(contains(["[","]"],tmp),
+      if(tmp=="[",flg=1);
+      if(tmp=="]",flg=0);
+    ,
+      if(flg==0,tmp1=tmp1+tmp);
+    );
+  );
+  out=tmp1; //210817to
+  out=Removespace(out);
+  head="";
+  flg=0;
+  plv=Bracket(out,"()");
+  if(length(plv)>0,
+    if(plv_1_2==0,
+      head=substring(out,0,plv_1_1);
+      out=substring(out,plv_1_1,length(out));
+      if(substring(out,0,1)=="*",out=substring(out,1,length(out)));
+      plv=Bracket(out,"()");
+    );
+    tmp=plv_(-1);
+    if(tmp_2!=-1,
+      out=str;
+      flg=1;
+    );
+  );
+  sharpL=[];
+  ctr=1;
+  if(flg==0,
+    forall(repL,rep,
+      fun=rep_1;
+      tmp=indexof(out,fun);
+      while((tmp>0)&(ctr<100),
+        pre=substring(out,0,tmp-1);
+        out=substring(out,tmp-1,length(out));
+        plv=Bracket(out,"()");
+        tmp=select(plv,#_2==-1);
+        tmp=tmp_1;
+        post=substring(out,tmp_1,length(out));
+        out=substring(out,0,tmp_1);
+        clv=Getlevel(out);
+        clv=select(clv,#_2==1);
+        nn=length(clv)+1;
+        if(nn==1,
+          tmp1=substring(out,plv_1_1,length(out)-1);
+          out=replace(rep_2_1,"xx",tmp1);
+        );
+        if(nn==2,
+          tmp1=substring(out,plv_1_1,clv_1_1-1);
+          tmp2=substring(out,clv_1_1,length(out)-1);
+          tmp=replace(rep_2_2,"xx",tmp1);
+          out=replace(tmp,"yy",tmp2);
+        );
+        out=pre+out+post;        
+        tmp1=indexof(out,"{"); //220520from
+        tmp2=indexof(out,"}");
+        sub=substring(out,tmp1,tmp2-1);
+        tmp="#"+text(ctr)+"#";
+        out=replace(out,"{"+sub+"}",tmp); //220520to
+        sharpL=append(sharpL,[tmp,sub]);
+        tmp=indexof(out,fun); //220513
+        ctr=ctr+1;
+      );
+    );
+  );
+  out=Addasterisk(out);
+  out=replace(out,"()","");
+  forall(reverse(sharpL),
+    out=replace(out,#_1,#_2);
+  );
+  out=head+out;
+  out=replace(out,"e^","(exp(1))^"); //220610
+  out;
+);
+Addasterisk(strorg):=(
+  regional(str,out,sgnL,numL,alphaL,numalpha,ctr,
+      pre,now,tmp,tmp1,tmp2);
+  str=Removespace(strorg);
+  str=replace(str,"  ","*");
+  sgnL=["+","-","*","/","^"];
+  numL=append(apply(0..9,text(#)),"."); //210226
+  tmp1=32..126;
+  tmp=(65..90)++(97..122);
+  tmp1=remove(tmp1,tmp);
+  alphaL=apply(tmp,unicode(text(#),base->10));
+  numalpha=numL++alphaL;
+  out=""; pre="@";
+  while(length(str)>0,
+    now=str_1;
+    str=substring(str,1,length(str));
+    if(now=="#",
+      if(contains(numalpha++[")"],pre),out=out+"*");
+      tmp=indexof(str,"#");
+      out=out+"#"+substring(str,0,tmp-1);
+      str=substring(str,tmp,length(str));
+    );    
+    if(contains(numL,now),
+      if(contains(alphaL++[")"],pre),out=out+"*");
+    );
+    if(contains(alphaL++["("],now),
+      if(contains(numalpha++[")"],pre),out=out+"*");
+    );
+    out=out+now;
+    pre=now;
+  );
+  out;
+);
+Removespace(str):=(
+  regional(tmp,flg,out);
+  tmp=length(str)+1;
+  flg=0;
+  forall(1..(length(str)),
+    if(flg==0,
+      if((str_#)!=" ",
+        tmp=#;
+        flg=1;
+      );
+    );
+  );
+  out=substring(str,tmp-1,length(str));
+  flg=0;
+  tmp=0;
+  forall(reverse(1..(length(out))),
+    if(flg==0,
+      if((out_#)!=" ",
+        tmp=#;
+        flg=1;
+      );
+    );
+  );
+  out=substring(out,0,tmp);
+);
+Bracket(str):=Bracket(str,"()");
+Bracket(str,br):=(
+  regional(ph,pt,out,noL,ncL,nall,level,tmp);
+  ph=substring(br,0,1);
+  pt=substring(br,1,2);
+  noL=Indexall(str,ph);
+  ncL=Indexall(str,pt); // 16.05.22until
+  nall=sort(concat(noL,ncL));
+  level=0;
+  out=[];
+  forall(nall,
+    if(contains(noL,#),
+      level=level+1;
+      tmp=[#,level];
+    ,
+      tmp=[#,-level];
+      level=level-1;
+    );
+    out=append(out,tmp);
+  );
+  out;
+);
+Indexall(str,key):=(
+  regional(rest,out,flg,tmp,tmp1,);
+  out=[];
+  rest=str;
+  flg=0;
+  forall(1..(length(str)),
+    if(flg==0,
+      tmp=indexof(rest,key);
+      if(tmp>0,
+        tmp1=tmp+length(str)-length(rest);
+        out=append(out,tmp1);
+        rest=substring(rest,tmp,length(rest));
+      ,
+        flg=1;
+      );
+    );
+  );
+  out;
+);
+
+</script>
+-->
+
+
+<!--
+<script id="csinit" type="text/x-cindyscript">
+csdraw() := (
+  plot(x*x-3*x);
+);
+</script>
+-->
+
+
+<script>
+
+function set_cood(selector,x,y) {
+
+  console.log("set_cood: selector="+selector+", x="+x+", y="+y);
+
+  $(selector).css("left",String(x)+"px");
+  $(selector).css("top",String(y)+"px");
+  
+}
+
+function submit_data(ansdata,logname,fname,funame) {
+
+/*
+  let con = confirm("問題の解答とキー入力のログをサーバーに送り、課題を終了しますが、それで良いですか？");
+  if (!(con)) {
+    return(0);
+  }
+*/
+
+/*
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  let logname = document.querySelector("#logname_data_1").value;
+  let fname = "ketlms/"+ logname + ".log";
+*/
+  let url = "https://ktky.sakura.ne.jp/file/recieve_data6.php";
+  let com = {};
+  com["data"] = ansdata;
+  com["filename"] = fname;
+  console.log("url"+url);
+  console.log("com="+com);
+  Palette.exec_url(url,com);
+  com = {};
+/*
+  let uname = ansdata.split(";;")[0];
+  fname = "ketlms/" + logname + "_" + uname + ".klog";
+*/
+  let logdata = document.querySelector("#log").value;
+  com["data"] = logdata;
+  com["filename"] = funame;
+  Palette.exec_url(url,com);
+
+}
+
+function file_check(fname) {
+
+  let url = "https://ktky.sakura.ne.jp/file/file_check.php";
+  let com = {};
+  com["filename"] = fname;
+  let ans = Palette.exec_url(url,com);
+  let mans = ans.match(/<body>\r?\n([\s\S]*?)\r?\n<\/body>/);
+  return mans[1];
+  
+}
+
+function check_submit_data() {
+
+  let con = confirm("問題の解答とキー入力のログをサーバーに送り、課題を終了しますが、それで良いですか？");
+  if (!(con)) {
+    return(0);
+  }
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  let logname = document.querySelector("#logname_data_1").value;
+  let fname = "ketlms/"+ logname + ".log";
+  let uname = ansdata.split(";;")[0];
+  let funame = "ketlms/" + logname + "_" + uname + ".klog";
+  console.log("check_submit_data fname="+fname);
+  let ans = file_check(funame);
+  if (ans == "TRUE") {
+    alert("課題は既に提出されています");
+  } else {
+    submit_data(ansdata,logname,fname,funame);
+  }
+  
+
+}
+
+function copy_data() {
+
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('rec=rechead+Getcurtime()+";;"; ansL_nqu=Textedit(ch,"",""); str=""; forall(1..(length(ansL)),n,str=str+ansL_n+";;";); rec=rec+substring(str,0,length(str)-2); Subsedit(9,rec); StrL_4=rec;');
+  document.getElementById('test_iframe').contentWindow.cdy.evokeCS('jsrec = replace(rec,"\'","[[dash]]")');
+  let ansdata = document.getElementById('test_iframe').contentWindow.cdy.evalcs('jsrec').value.replaceAll("[[dash]]","'") + "\n";
+  alert("ansdata="+ansdata);
+  navigator.clipboard.writeText(ansdata);
+  alert("解答の文字列がバッファへコピーされました");
+
+}
+
+// let epagew = Number(document.querySelector('.paint_url + div[name="url1"]').querySelector('.paint_url_width').value);
+// let epagew = Number(document.querySelector('div[name="url1"]').querySelector('.paint_url_width').value);
+let epagew = Number(document.querySelector('div[name="url1"] > .paint_url_width').value);
+console.log("epagew = "+epagew);
+
+function HtmlString_To_Document(text){
+  try{
+    var dom_parser = new DOMParser();
+    var document_obj = dom_parser.parseFromString(text , "text/html");
+    if(document_obj.getElementsByTagName("parsererror").length == 0){
+      return document_obj;
+    }
+  }catch(e){
+  }
+
+  try{
+    var document_obj = document.implementation.createHTMLDocument("");
+    document_obj.body.innerHTML = text;
+    return document_obj;
+  }catch(e){
+  }
+
+  return null;
+}
+
+function set_scale(selector,scale) {
+  
+ $(selector).css({ 'transform-origin' : '0 0','transform' : 'scale('+scale+')'});
+
+}
+
+/*
+function getViewportSize() {
+  const w1 = document.documentElement.clientWidth,
+  w2 =  window.innerWidth,
+  h1 = document.documentElement.clientHeight,
+  h2 = window.innerHeight;
+        
+  alert("w1="+w1+", w2="+w2+", h1="+h1+",h2="+h2);
+  
+}
+*/
+
+// getViewportSize();
+
+set_scale("#scale_div",(document.documentElement.clientWidth)/epagew);
+// set_scale("#scale_div",1);
+function set_mode_scale() {
+
+  if (Palette.mode == "user") {
+  
+    set_scale("#scale_div",(document.documentElement.clientWidth)/epagew);
+    
+  } else {
+  
+    set_scale("#scale_div",1);
+  }
+}
+
+// set_mode_scale();
+
+let timecount = 0;
+let timeout = 100;
+var mode = "flick";
+
+// alert($("#show_hide_data_1").val());
+
+var show_hide = JSON.parse($("#show_hide_data_1").val());
+// console.log("show_hide="+show_hide["#c1"]);
+
+
+function takelog() {
+
+  console.log("mode="+mode);
+  let d3 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("nqu").value.real;
+
+  if (mode=="flick") {
+  
+    let d1 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("startposf").value.real;
+    if (d1 != 0) {
+      let d2 = $("#log").val();
+      let d4 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("hyoujif").value.real;
+//      let d4 = document.getElementById('test_iframe').contentWindow.cdy.evalcs("hyoujifa").value.real;
+      $("#log").val(d2+"\n"+d3+","+d4);
+      timecount = timecount+1;
+    }
+    
+  } else {
+  
+    let d2 = $("#log").val();
+    let d4 = -1;
+    $("#log").val(d2+"\n"+d3+","+d4);
+    timecount = timecount+1;
+    
+  }
+  
+  for (let key in show_hide) {
+    if (show_hide[key].indexOf(d3) >= 0) {
+       $(key).show();
+    } else {
+       $(key).hide();
+    }
+  }
+
+}
+
+const intervalId = setInterval(() =>{
+    takelog();
+    if(timecount > timeout){
+      clearInterval(intervalId);
+    }}, 
+1000);
+
+/*
+eval(getatr("onoff","tmp"));
+if (tmp=="on") {
+  eval(bgcolor(44,125,212,0.3));
+  eval(setatr("onoff","off"));
+} else {
+  eval(bgcolor(44,125,212,1));
+  eval(setatr("onoff","on"));
+}
+
+
+
+url = this.parentNode.querySelector('.palette_button_text_text').value;
+window.open(url,"_blank");
+
+
+});
+*/
+
+function bgcolor(r,g,b,a) {
+
+/*
+  let com = "this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';";
+  eval(com);
+*/
+//  return("this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';");
+
+//  eval("this.parentNode.querySelector('.palette_button_body').style.background = 'rgba("+r+","+g+","+b+","+a+")';");
+
+  Palette_Body.target.style.background = "rgba("+r+","+g+","+b+","+a+")";
+
+}
+
+function setstring(str) {
+
+//  return("this.parentNode.querySelector('.palette_button_body').value='"+str+"';");
+
+  Palette_Body.target.value = str;
+}
+
+function setatr(atr,val) {
+
+//  return("this.parentNode.querySelector('.palette_button_body').setAttribute('"+atr+"','"+val+"');");
+  Palette_Body.target.setAttribute(atr,val);
+  
+}
+
+function getatr(atr) {
+
+//  return(varname+"=this.parentNode.querySelector('.palette_button_body').getAttribute('"+atr+"');");
+  return(Palette_Body.target.getAttribute(atr));
+}
+
+function setstyle(prop,val) {
+
+  $(Palette_Body.target).css(prop,val);
+//  eval('Palette_Body.target.style.'+prop+' = "'+val+'"');
+  
+}
+
+function getstyle(prop) {
+
+//  let getStyle = getComputedStyle(Palette_Body.target);
+//  return(eval('getStyle.'+prop));
+  return($(Palette_Body.target).css(prop));
+  
+}
+
+function getparentstyle() {
+
+  return(this.parentNode.getAttribute("style"));
+  
+}
+
+/*
+
+link(gettext());
+
+*/
+
+function gettext() {
+
+  return(Palette_Body.target.value);
+
+}
+
+function link(url) {
+
+  window.open(url,'_blank');
+  
+}
+
+window.onload = function() {
+
+//  startcindy();
+  Palette.mode_set("user");
+
+}
+
+function get_ketmath_input_raw() {
+
+  return(document.getElementById('test_iframe').contentWindow.cdy.evalcs('Text2').value.text);
+
+}
+
+function get_ketmath_input() {
+
+  return(get_ketmath_input_raw().split("=")[1]);
+
+}
+
+function cseval(cindyname,com) {
+
+  let idx = Number($("#"+cindyname).attr("index"));
+  return(Palette_Cindy.cinderella_obj[idx].evalcs(com).value);
+
+}
+
+function csdraw(cindyname,com) {
+
+  let idx = Number($("#"+cindyname).attr("index"));
+  Palette_Cindy.cinderella_obj[idx].evokeCS("csdraw():=("+com+")");
+
+}
+
+
+    let conversationId = '';
+    const USER_ID = 'user'; 
+    
+    
+    async function callDifyViaProxy() {
+
+    
+//      const query = document.getElementById('input').value;
+//       if (!query) return;
+
+//      showMessage('回答を生成中......');
+
+/*
+      const query = $('.query > .target').val() + "\nまた、解説は日本語で行い、すべての漢字にはひながなで振り仮名を振ってください。";
+      const problem = $("#problem  > .target").val();
+*/
+
+let mat = document.getElementById('test_iframe').contentWindow.cdy.evalcs('Gettexform(StrL_2)').value;
+
+const query = mat;
+
+      const body = {
+//        inputs: { problem : problem },
+        inputs: {},
+        query: query,
+        response_mode: 'blocking',
+        user: USER_ID,
+        auto_generate_name: true,
+        conversation_id: conversationId || ""  // 初回は空文字
+      };
+  
+//      const promptText = query + problem;
+      const promptText = query;
+      
+      if (!promptText.trim()) {
+        showMessage('行列を入力してください。');
+        return;
+      }
+  
+      // プロキシに入力と conversation_id を送信
+      // 数学の先生（日本語）V４
+      const res = await fetch('https://ktky.sakura.ne.jp/kihara/sakura_dify_proxy_cors_1b.php?fname=dify_2025_05_28_1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+//        body: JSON.stringify({ query, conversation_id: conversationId })
+          body: JSON.stringify(body),
+      });
+      const data = await res.json();  // JSON をパース【cite turn2search0】
+      // conversation_id を更新（初回のみ）
+      if (!conversationId && data.conversation_id) {
+        conversationId = data.conversation_id;
+      }
+      // メッセージ表示（blocking モードの JSON 構造に合わせる）
+      const botAnswer = data.answer || (data.choices && data.choices[0]?.message?.content) || '';
+      showMessage(botAnswer);
+
+    };
+      
+        
+
+function showMessage(msg) {
+
+    $('#md > .wmd-input').val(msg);
+    Palette_Markdown.starteditor("_suffix_1");
+
+}
+
+
+
+</script>
+
+</div>
+
+
+</body></html>
