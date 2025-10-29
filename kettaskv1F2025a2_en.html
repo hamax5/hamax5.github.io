@@ -4787,15 +4787,15 @@ if(stok==0,OKK=[["OK"]]);
 if(stok==1,OKK=[["Start"]]);
 if(stok==2,OKK=[["Next"]]);
 if(resetbutton==1,
- Keytable(1,78,1,59,[60.2,-54],0,[["Cancel"]],[0,-0.5],12);
+ Keytable(1,78,1,59,[60.2,-54],0,[["Cancel"]],[0,-0.5],15);
 ,
- Keytable(1,78,1,59,[60.2,-54],0,OKK,[0,-1],25);
+ Keytable(1,78,1,59,[60.2,-54],0,OKK,[0,-1],20);
 );
-Keytable(1,78,1,59,[23.3,-54],0,[["Reset"]],[0,-0.6],14);
+Keytable(1,78,1,59,[23.3,-54],0,[["Reset"]],[0,-0.6],15);
 
-if(hyoujifb==0, Keytable(1,78,1,59,[70.2,-54],0,[["小文字"]],[0,-0.5],16));
-if(hyoujifb==1, Keytable(1,78,1,59,[70.2,-54],0,[["大文字"]],[0,-0.5],16));
-if(hyoujifb==2, Keytable(1,78,1,59,[70.2,-54],0,[["ギリシャ"]],[0,-0.5],12));
+if(hyoujifb==0, Keytable(1,78,1,59,[70.2,-54],0,[["abc"]],[0,-0.5],16));
+if(hyoujifb==1, Keytable(1,78,1,59,[70.2,-54],0,[["ABC"]],[0,-0.5],16));
+if(hyoujifb==2, Keytable(1,78,1,59,[70.2,-54],0,[["Greek"]],[0,-0.5],12));
 //-------------------------------------------------- to this line :usui
 
 if(stok<=1,
@@ -4955,10 +4955,10 @@ if(ctcheck4==4,
 if(startposf==0,
 
  Keytable(1,600,1,300,[20,-46],[1,1,1],[[""]],[0,0],20);
- drawtext([30,-25],"入力媒体のチェックをします",size->20);
- drawtext([30,-30],"この枠内のどこかを",size->20);
- drawtext([30,-35],"クリック　または　タッチ",size->20);
- drawtext([30,-40],"してください",size->20);
+ drawtext([30,-25],"Checking the input device. ",size->20);
+ drawtext([30,-30],"Please click or tap ",size->20);
+ drawtext([30,-35],"     anywhere inside this box.",size->20);
+ drawtext([30,-40]," ",size->20);
 
 
 //if(or(ctcheck1==1,ctcheck4==4),
@@ -5043,9 +5043,9 @@ if(startposf==0,
 
  if(resetbutton==1,
   Keytable(1,500,1,140,[22,-47.7],[1,1,1],[[""]],[0,0],20);
-  drawtext([27,-37],"もう一度「リセット」を押すと",size->20);
-  drawtext([27,-40],"入力データがすべて消去されます",size->20);
-  drawtext([32,-44],"どちらか押してください",size->20);
+  drawtext([29,-37],"Press “Reset” again",size->20);
+  drawtext([29,-40],"      to erase all input data.",size->20);
+  drawtext([29,-44],"Please press either button. ",size->20);
   drawtext([26,-46],"↓",size->20);
   drawtext([63,-46],"↓",size->20);
  );
