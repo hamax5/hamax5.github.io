@@ -3159,8 +3159,8 @@ Lettermove(dir,str):=(
 Ketcindyjsfigure=0;
 Ketcindyjsscale=1;
 aalinestart=1;
-quline="Q01::Equation of the graph	[1]::Plot y=2x^2+4x+3	[2]::方程式を y=fr(a,x-p)+q// としてa, p, qの値を入力せよ．	[3]::方程式を y=asq(x-p)+q// としてa, p, qの値を入力せよ．";
-shline="Q01---	[1]y =? 	[2](a,p,q) =(?,,) 	[3](a,p,q) =(?,,) ";
+quline="Q01::グラフの方程式	[1]::方程式を y=a(x-p)^2+q// としてa, p, qの値を入力せよ．	[2]::方程式を y=fr(a,x-p)+q// としてa, p, qの値を入力せよ．	[3]::方程式を y=asq(x-p)+q// としてa, p, qの値を入力せよ．";
+shline="Q01---	[1](a,p,q) =(?,,) 	[2](a,p,q) =(?,,) 	[3](a,p,q) =(?,,) ";
 sqline="01AA	2	2	2	2CR02BB	2	2	2	2CR03CC	2	2	2	2CR04DD	2	2	2	2CR05AA	2	2	2	2CR06BB	2	2	2	2CR07CC	2	2	2	2CR08DD	2	2	2	2CR09AA	2	2	2	2CR10BB	2	2	2	2CR11CC	2	2	2	2CR12DD	2	2	2	2CR13AA	2	2	2	2CR14BB	2	2	2	2CR15CC	2	2	2	2CR16DD	2	2	2	2CR17AA	2	2	2	2CR18BB	2	2	2	2CR19CC	2	2	2	2CR20DD	2	2	2	2CR21AA	2	2	2	2CR22BB	2	2	2	2CR23CC	2	2	2	2CR24DD	2	2	2	2CR25AA	2	2	2	2CR26BB	2	2	2	2CR27CC	2	2	2	2CR28DD	2	2	2	2CR29AA	2	2	2	2CR30BB	2	2	2	2CR31CC	2	2	2	2CR32DD	2	2	2	2CR33AA	2	2	2	2CR34BB	2	2	2	2CR35CC	2	2	2	2CR36DD	2	2	2	2CR37AA	2	2	2	2CR38BB	2	2	2	2CR39CC	2	2	2	2CR40DD	2	2	2	2CR41AA	2	2	2	2CR42BB	2	2	2	2CR43CC	2	2	2	2CR44DD	2	2	2	2CR45AA	2	2	2	2CR46BB	2	2	2	2CR47CC	2	2	2	2CR48DD	2	2	2	2CR49AA	2	2	2	2CR50BB	2	2	2	2";
 quLL=Line2list(quline);
 shL=Line2list(shline);
@@ -3987,7 +3987,7 @@ CtrkeyL=[
   [["Cap"],["Gre"],["Bld"],["Vec"]],
   [["Cal"],["Lin"],[""]],
   [["Rec"]],
-  [["Back","","Next"]],
+  [["戻る","","次へ"]],
   [["$<\!<$","$<$","$>$","$>\!>$"]]
 ];
 
@@ -4783,15 +4783,15 @@ tmp=[13,-12.9];
 Keytable(0,[78,102,78],1,56,tmp,0,CtrkeyL_5,[0,-0.8],21);
 tmp=poskey+[-4.3,-14];
 //Keytable(1,43,1,33,tmp,0,CtrkeyL_4,[0,-0.5],21);
-if(stok==0,OKK=[["OK"]]);
-if(stok==1,OKK=[["Start"]]);
-if(stok==2,OKK=[["Next"]]);
+if(stok==0,OKK=[["確認"]]);
+if(stok==1,OKK=[["開始"]]);
+if(stok==2,OKK=[["次へ"]]);
 if(resetbutton==1,
- Keytable(1,78,1,59,[60.2,-54],0,[["Cancel"]],[0,-0.5],12);
+ Keytable(1,78,1,59,[60.2,-54],0,[["キャンセル"]],[0,-0.5],12);
 ,
  Keytable(1,78,1,59,[60.2,-54],0,OKK,[0,-1],25);
 );
-Keytable(1,78,1,59,[23.3,-54],0,[["Reset"]],[0,-0.6],14);
+Keytable(1,78,1,59,[23.3,-54],0,[["リセット"]],[0,-0.6],14);
 
 if(hyoujifb==0, Keytable(1,78,1,59,[70.2,-54],0,[["小文字"]],[0,-0.5],16));
 if(hyoujifb==1, Keytable(1,78,1,59,[70.2,-54],0,[["大文字"]],[0,-0.5],16));
@@ -4920,7 +4920,7 @@ javascript("navigator.clipboard.writeText("+Dq+javatext+Dq+");");
 
 //----------------------------------------------------- from this line :usui
 
-drawtext(T3+[-6,-1],"Ans.",size->20);
+drawtext(T3+[-6,-1],"解答",size->20);
 
 if(1==0,//------- if(1==0 start -------------------------
 
@@ -5297,6 +5297,24 @@ document.addEventListener('pointerup', function(){
 </script>
 
 
+<div style="padding: 50px">
+<p><font size="10">&emsp;<b>KeTMath数式ルール</b></font></p>
+<ol><font size="5">
+	<li>分数　<b>fr(a,b)</b>　注) 小さい分数 <b>tfr(a,b)</b></li>
+<li>掛け算　<b>ab</b>　注) <b>a*b</b>も可</li>
+<li>べき乗　<b>a^(b)</b>　注) 1文字の場合は<b>a^b</b>も可</li>
+<li>平方根　<b>sq(a)</b>，3乗根　<b>sq(3,a)</b></li>
+<li>三角関数　<b>sin(x)</b>，sin(x)の2乗　<b>sin(2,x)またはsin(x)^(2)</b></li>
+<li>円周率　<b>pi</b>
+<li>度　<b>(deg)</b></li>
+<li>対数関数　<b>log(x)</b>，自然対数　<b>ln(x)</b>，底がa　 <b>log(a,x)</b></li>
+<li>改行　<b>//</b></li>
+<li>スペース　<b>(sp)</b>　注) \;を出力</li>
+<li>立体　<b>100tx(m)</b></li>
+<li>不定積分　<b>int(x^2,dx)</b>，定積分　<b>int(a,b,x^2,dx)</b><br>
+	　注）定積分の関数の括弧を外すときは先頭に<b>!</b>を追加
+</ol></font>
+</div>
 <footer><p align="center"><font size="4">&copy; 2021 Setsuo Takato</font></p></footer>
 </body>
 </html>
