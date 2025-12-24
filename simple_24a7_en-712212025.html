@@ -3322,16 +3322,20 @@ Ketcindyjsscale=1;
 
 
 </script><script id="cs2draw" type="text/x-cindyscript">
-
+a2=2;
+b2=3;
 Ketinit();
+Setketcindyjs(["Label=[S]","Color=offwhite"]);//no ketjs
 Slider("S",[-2*pi,-5],[2*pi,-5]);
 
 a1=5;b1=3;c1=sqrt(abs(a1^2-b1^2));
 eqn1="x^2/a1^2+y^2/b1^2=1";
-a2=5;b2=3;c2=sqrt(abs(a2^2-b2^2));
+//a2=5;b2=3;
+c2=sqrt(abs(a2^2-b2^2));
 eqn2="x^2/a2^2+y^2/b2^2=1";
 
 Implicitplot("1",eqn1,"x=[-6,6]","y=[-6,6]");
+Implicitplot("2",eqn2,"x=[-6,6]","y=[-6,6]",["Color=blue"]);
 
 P=[a2*cos(S.x),b2*sin(S.x)];
 F1=[c1,0];F2=[-c1,0];
@@ -3346,13 +3350,10 @@ Expr([F2,"s2",text(-c1)]);
 Expr([[0,b1],"n2w2",text(b1)]);
 Expr([[0,-b1],"s1w2",text(-b1)]);
 Letter([P+0.1*P,"c","P"]);
+Expr([[a2,0],"s2e1",text(a2)]);
+Expr([[-a2,0],"s2w1",text(-a2)]);
 
 Windispg();
-
-
-;
-
-
 </script><link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/katex/katex.min.css" media="all"><script id="cs1init" type="text/x-cindyscript">
 
 Invert(x):=reverse(x);
@@ -6712,7 +6713,7 @@ Windispg();
 ;
 
 
-</script></head><body>
+</script><link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/katex/katex.min.css" media="all"></head><body>
     <!-- <input type="text" name="hoge" value="" readonly="readonly"> -->
   <title>Math Input Teaching Material</title>
   <style>
@@ -6826,16 +6827,16 @@ Windispg();
     <textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 70px; display: none;">copy_data();
 </textarea></div>
       
-  <div id="b3" class="palette body top button" index="2" style="top: 350px; left: 51px; position: absolute;">
+  <div id="b3" class="palette body top button" index="2" style="top: 558px; left: 54px; position: absolute;">
     <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 115.9px; height: 34.909px; top: 0px; left: 0px;" value="Input"><input type="button" class="palette body move button" value="i: b3" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px; display: inline-block;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 85.9px; padding: 0px; font-size: 11px; display: inline-block;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 34.909px; left: 85.9px; padding: 0px; font-size: 11px; display: inline-block;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 34.909px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240); display: inline-block;"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 115.9px; resize: both; display: none; margin: 0px; height: 339px; width: 793px;">var a=cseval("ci","T.x").real;
 var c=cseval("ci","S.x").real;
 var f1=String(Math.round(a*a));
 var f2=String(Math.round(a*a-c*c));
 var s1=f2&gt;=0 ? "+" : "-";
-var f2=f2&gt;=0 ? "f2" : "-f2";
+var f2=f2&gt;=0 ? f2 : -f2;
 f1 = f1==1 ? "" : f1;
 f2 = f2==1 ? "" : f2;
-var str="\dfrac{x^2}{"+f1+"}"+s1+"\dfrac{y^2}{"+f2+"}=1";
+var str="fr(x^2,"+f1+")"+s1+"fr(y^2,"+f2+")=1";
 document.getElementById('test_iframe').contentWindow.cdy.evokeCS('funflg=1;name="'+str+'";');
 
 
@@ -6936,8 +6937,8 @@ Figpdf();
 Windispg();
 `;
 csdraw("c2",com);</textarea></div><div id="c1" class="palette body top cindy" index="2" style="top: 244px; left: 299px; position: absolute; display: block;">
-    <div id="CSCanvas_2" class="CindyJS-widget palette body target cindy" style="position: relative; width: 355px; height: 252px;"><canvas width="710" height="504" style="position: absolute; border: medium; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 100%; width: 100%; background-color: rgb(247, 247, 247);"></canvas><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: c1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 325px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 252px; left: 325px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 252px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 355px; resize: both; display: none;"></textarea></div><div id="ci" class="palette body top cindy" index="1" style="top: 306px; left: 190px; position: absolute; display: block;">
-    <div id="CSCanvas_1" class="CindyJS-widget palette body target cindy" style="position: relative; width: 471px; height: 457px;"><canvas width="942" height="912" style="position: absolute; border: medium; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 100%; width: 100%; background-color: rgb(247, 247, 247);"></canvas><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: ci" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 441px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 457px; left: 441px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 457px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 471px; resize: both; display: none;"></textarea></div></div> <!-- <div id="top_screen" -->
+    <div id="CSCanvas_2" class="CindyJS-widget palette body target cindy" style="position: relative; width: 355px; height: 252px;"><canvas width="710" height="504" style="position: absolute; border: medium; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 100%; width: 100%; background-color: rgb(247, 247, 247);"></canvas><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: 0s; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; z-index: -1; visibility: hidden;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: c1" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 325px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 252px; left: 325px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 252px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 355px; resize: both; display: none;"></textarea></div><div id="ci" class="palette body top cindy" index="1" style="top: 322px; left: 216px; position: absolute; display: block;">
+    <div id="CSCanvas_1" class="CindyJS-widget palette body target cindy" style="position: relative; width: 437px; height: 288px;"><canvas width="872" height="576" style="position: absolute; border: medium; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 288px; width: 437px; background-color: rgb(247, 247, 247);"></canvas><div style="position: absolute; transition: all; inset: 0px; overflow: hidden; z-index: -1; visibility: hidden; width: 437px; height: 288px;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: all; inset: 0px; overflow: hidden; z-index: -1; visibility: hidden; width: 437px; height: 288px;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: ci" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 407px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 288px; left: 407px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 288px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px;"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 437px; resize: both; display: none;"></textarea></div></div> <!-- <div id="top_screen" -->
   
   
   <div id="bottom_screen">
@@ -6993,9 +6994,9 @@ Palette_Cindy.cinderella_json[2]=`{"scripts":"cs2*","use":["katex"],"defaultAppe
 Palette_Cindy.cinderella_init[2]="";
 Palette_Cindy.cinderella_obj[2].evokeCS(Palette_Cindy.cinderella_init[2]);
 
-Palette_Cindy.cinderella_code[1]=`Palette_Cindy.cinderella_obj[1] = CindyJS({"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"SW","type":"Free","pos":[-3.844827586206897,-4,0.6028837081848101],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"NE","type":"Free","pos":[-3.9820627802686706,-4,-0.6272153376631002],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"T","type":"Free","pos":[1.3333333333333333,-4,0.6666666666666666],"color":[1,0,0],"labeled":true,"size":3,"border":true},{"name":"S","type":"Free","pos":[0.8,-4,0.8],"color":[1,0,0],"labeled":true,"size":3,"border":true}],"ports":[{"width":471,"height":457,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.42029234265836,6.935059657437205,6.763470552510923,-6.620479631739022]}],"grid":1,"snap":true,"background":"rgb(247,247,247)"}],"csconsole":false,"cinderella":{"build":2090,"version":[3,0,2090]}});`;
+Palette_Cindy.cinderella_code[1]=`Palette_Cindy.cinderella_obj[1] = CindyJS({"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"SW","type":"Free","pos":[-3.844827586206897,-4,0.6028837081848101],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"NE","type":"Free","pos":[-3.9820627802686706,-4,-0.6272153376631002],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"T","type":"Free","pos":[1.3333333333333333,-4,0.6666666666666666],"color":[1,0,0],"labeled":true,"size":3,"border":true},{"name":"S","type":"Free","pos":[0.8,-4,0.8],"color":[1,0,0],"labeled":true,"size":3,"border":true}],"ports":[{"width":437,"height":288,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.42029234265836,6.935059657437205,6.763470552510923,-6.620479631739022]}],"grid":1,"snap":true,"background":"rgb(247,247,247)"}],"csconsole":false,"cinderella":{"build":2090,"version":[3,0,2090]}});`;
 eval(Palette_Cindy.cinderella_code[1]);
-Palette_Cindy.cinderella_json[1]=`{"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"SW","type":"Free","pos":[-3.844827586206897,-4,0.6028837081848101],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"NE","type":"Free","pos":[-3.9820627802686706,-4,-0.6272153376631002],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"T","type":"Free","pos":[1.3333333333333333,-4,0.6666666666666666],"color":[1,0,0],"labeled":true,"size":3,"border":true},{"name":"S","type":"Free","pos":[0.8,-4,0.8],"color":[1,0,0],"labeled":true,"size":3,"border":true}],"ports":[{"width":471,"height":457,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.42029234265836,6.935059657437205,6.763470552510923,-6.620479631739022]}],"grid":1,"snap":true,"background":"rgb(247,247,247)"}],"csconsole":false,"cinderella":{"build":2090,"version":[3,0,2090]}}`;
+Palette_Cindy.cinderella_json[1]=`{"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"SW","type":"Free","pos":[-3.844827586206897,-4,0.6028837081848101],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"NE","type":"Free","pos":[-3.9820627802686706,-4,-0.6272153376631002],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"T","type":"Free","pos":[1.3333333333333333,-4,0.6666666666666666],"color":[1,0,0],"labeled":true,"size":3,"border":true},{"name":"S","type":"Free","pos":[0.8,-4,0.8],"color":[1,0,0],"labeled":true,"size":3,"border":true}],"ports":[{"width":437,"height":288,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.42029234265836,6.935059657437205,6.763470552510923,-6.620479631739022]}],"grid":1,"snap":true,"background":"rgb(247,247,247)"}],"csconsole":false,"cinderella":{"build":2090,"version":[3,0,2090]}}`;
 Palette_Cindy.cinderella_init[1]="";
 Palette_Cindy.cinderella_obj[1].evokeCS(Palette_Cindy.cinderella_init[1]);
 
