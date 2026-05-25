@@ -3239,7 +3239,7 @@ Lettermove(dir,str):=(
 Ketcindyjsfigure=0;
 Ketcindyjsscale=1;
 aalinestart=1;
-quline="Q01::曲線上の点における接線	[1]::曲線 y=x^3-2x^2+3 上の点(2, 3) における接線の//方程式を y=ax+b とするとき a, b の値を求めよ.	[2]::曲線 y=e^x-x^2 上の点(1, e-1) における接線をかけ．";
+quline="Q01::曲線上の点における接線	[1]::曲線 y=x^3-2x^2+3 上の点(2, 3) における接線の//方程式を y=ax+b とするとき a, b の値を求めよ.	[2]::曲線 y=e^x-x^3 上の点(1, e-1) における接線をかけ．";
 shline="Q01---	[1] (a,b) = (?,) 	[2] ";
 sqline="01AA	2	2	2CR02BB	2	2	2CR03CC	2	2	2CR04DD	2	2	2CR05EE	2	2	2CR06FF	2	2	2CR07GG	2	2	2CR08HH	2	2	2CR09II	2	2	2CR10JJ	2	2	2CR11AA	2	2	2CR12BB	2	2	2CR13CC	2	2	2CR14DD	2	2	2CR15EE	2	2	2CR16FF	2	2	2CR17GG	2	2	2CR18HH	2	2	2CR19II	2	2	2CR20JJ	2	2	2CR21AA	2	2	2CR22BB	2	2	2CR23CC	2	2	2CR24DD	2	2	2CR25EE	2	2	2CR26FF	2	2	2CR27GG	2	2	2CR28HH	2	2	2CR29II	2	2	2CR30JJ	2	2	2CR31AA	2	2	2CR32BB	2	2	2CR33CC	2	2	2CR34DD	2	2	2CR35EE	2	2	2CR36FF	2	2	2CR37GG	2	2	2CR38HH	2	2	2CR39II	2	2	2CR40JJ	2	2	2CR41AA	2	2	2CR42BB	2	2	2CR43CC	2	2	2CR44DD	2	2	2CR45EE	2	2	2CR46FF	2	2	2CR47GG	2	2	2CR48HH	2	2	2CR49II	2	2	2CR50JJ	2	2	2";
 pkline="0	2	3";
@@ -5286,7 +5286,11 @@ document.addEventListener('pointerup', function(){
 <li>微分　<b>diff(y,x)</b>，偏微分　<b>par(z,x)</b></li>
 <li>行列　<b>mat(a,b;c,d)</b>，行列式　<b>det(a,b;c,d)</b></li>
 <li>場合分け　<b>case(a,(x<0);c,(x(geq)0))</b>
+<li>ドット　1点　<b>dot()</b>，3点　<b>dot(s)</b>，下3点　<b>dot(l)</b>
+<li>掛け算×　<b>(cross)</b></li>
+<li>複号　<b>(pm),(mp)</b></li>
 <li>不等号　<b><, >, (leq), (geq),(neq)</b></li>
+<li>下添字　<b>a_n</b></li>
 <li>全角文字を混ぜてもよい　<b>2x-3=0の解はx=fr(3,2)</b><br>
 </ol></font>
 </div>
