@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+    <meta charset="UTF-8">
+    <title>動的コンポーネントシステム with PDF.js</title>
+    <!-- jQueryとjQuery UIを読み込む -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    
+    <!-- PDF.js をCDNから読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
+    
+    <!-- Algebrite を指定URLから読み込む -->
+    <script src="https://ktky.sakura.ne.jp/lib/algebrite/algebrite.bundle-for-browser.js"></script>
+    
+    <!-- Nerdamer をCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.min.js"></script>
+    
+    <!-- KaTeX をCDNから読み込む -->
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer="" src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer="" src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    
+    <!-- marked.js をCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    
+    <!-- spectrum.js（カラーピッカーライブラリ）の読み込み -->
+    <script src="https://ktky.sakura.ne.jp/lib/palette/spectrum.js"></script>
+    <link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/palette/spectrum.css">
+    
+    <!-- お絵描き機能本体を定義しているJSファイル -->
+    <script src="paint_5a.js"></script>
+    
+    <!-- CindyJS を読み込む -->
+    <link rel="stylesheet" href="https://cindyjs.org/dist/v0.8/CindyJS.css">
+    <script type="text/javascript" src="https://cindyjs.org/dist/v0.8/Cindy.js"></script>
+
+   <!--  KetCindyjs を読み込む -->
+    <link rel="stylesheet" href="ketcindyjs/CindyJS.css">
+   <script type="text/javascript" src="ketcindyjs/Cindy.js"></script>
+    
+    <!-- Pyodide を読み込む（Python実行用） -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    
+    <!-- jspreadsheet CE を読み込む -->
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css">
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css">
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    
+    <!-- SheetJS (xlsx) を読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Apache ECharts を読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <!-- Xterm.js を読み込む -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    
+    <style>
+        /* メニューのスタイル */
+        #rightMenu {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #f0f0f0;
+            border-left: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            z-index: 2000; /* コンポーネントより上に表示 */
+        }
+
+        /* メニュータイトルのスタイル */
+        .menu_title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: move; /* ドラッグ可能 */
+            background-color: #e0e0e0; /* 薄い灰色 */
+            padding: 1px 4px; /* パディングをさらに減らす */
+            border-radius: 4px;
+            font-size: 12px; /* フォントサイズを少し小さく */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* メニューセクションのスタイル */
+        .menu_section {
+            margin-bottom: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        /* メニューセクションヘッダーのスタイル */
+        .menu_section_header {
+            padding: 4px 6px;
+            background-color: #e8e8e8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .menu_section_header:hover {
+            background-color: #d0d0d0;
+        }
+
+        .menu_toggle_icon {
+            display: inline-block;
+            width: 12px;
+            text-align: center;
+            font-size: 10px;
+            margin-right: 4px;
+            transition: transform 0.2s;
+        }
+
+        .menu_section_header.collapsed .menu_toggle_icon {
+            transform: rotate(-90deg);
+        }
+
+        .menu_section_title {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* メニューセクションコンテンツのスタイル */
+        .menu_section_content {
+            padding: 4px;
+            display: block;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.2s ease-out;
+        }
+
+        .menu_section_content.collapsed {
+            max-height: 0 !important;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+        }
+
+        /* メニューアイテムのスタイル */
+        .menu_item {
+            padding: 6px;
+            margin-bottom: 4px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .menu_item:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* 隠すクラス */
+        .hidden {
+            display: none;
+        }
+
+        /* コンポーネントの共通スタイル */
+        .palette-container {
+            position: absolute;
+            background-color: transparent; /* 背景を透明に変更 */
+            box-sizing: border-box;
+            border: none;
+            border-radius: 4px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: none; /* 影も削除して完全に透明に */
+            overflow: visible;
+        }
+
+        /* PDFコンポーネント用のz-index設定 */
+        .palette-container[data-component-type="pdf"] {
+            z-index: 500;
+        }
+
+        /* テキストエリア、テキストボックス、ボタンコンポーネント用のz-index設定 */
+        .palette-container[data-component-type="textarea"],
+        .palette-container[data-component-type="textbox"],
+        .palette-container[data-component-type="button"] {
+            z-index: 1000;
+        }
+
+        /* パレットトップ（タイトルバー）のスタイル */
+        .palette-top {
+            cursor: move;
+            background-color: #f0f0f0;
+            padding: 1px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            height: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .palette-top .title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            white-space: nowrap;
+            overflow: visible;
+            flex-grow: 1;
+            margin-right: 8px;
+        }
+
+        .palette-top .buttons {
+            display: flex;
+            gap: 1px;
+        }
+
+        .palette-top .buttons .iframe-zoom-slider {
+            width: 40px;
+            height: 16px;
+            padding: 0;
+            margin-right: 2px;
+        }
+
+        /* iframeコンポーネントではbodyのpaddingを除去し、中身をコンテナ端まで表示 */
+        .palette-container[data-component-type="iframe"] .palette-body {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .palette-container[data-component-type="iframe"] .palette-body iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-top .buttons button {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            cursor: pointer;
+            border: none;
+            background-color: #6699ff;
+            font-size: 16px;
+            line-height: 1;
+            color: #fff;
+            border-radius: 2px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .palette-top .buttons button:hover {
+            background-color: #6699ff;
+            transform: scale(1.1);
+        }
+
+        /* 操作ボタンに特定の色を割り当て */
+        .palette-top .buttons .user-mode-toggle-button {
+            background-color: #ffaa00;
+        }
+
+        .palette-top .buttons .toggle-button {
+            background-color: #6699ff;
+        }
+
+        .palette-top .buttons .execute-button {
+            background-color: #66ff66;
+        }
+
+        .palette-top .buttons .delete-button {
+            background-color: #ff6666;
+        }
+
+        /* パレットボディのスタイル */
+        .palette-body {
+            flex-grow: 1;
+            flex-shrink: 1;
+            flex-basis: 0;
+            min-height: 0;
+            width: 100%;
+            position: relative;
+            padding: 8px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: stretch;
+            background-color: transparent; /* 背景を透明に変更 */
+        }
+
+        /* PDF表示コンテナのスタイル */
+        .palette-pdf {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* PDFコントロールのスタイル */
+        .palette-pdf .pdf-controls {
+            flex-shrink: 0;
+        }
+
+        /* PDFキャンバスコンテナのスタイル */
+        .palette-pdf .pdf-canvas-container {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+
+        /* PDF表示用canvasのスタイル */
+        .palette-pdf canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* サイズ調整ハンドルのスタイル */
+        .ui-resizable-handle {
+            z-index: 1001; /* コンポーネント内の要素より前面に表示 */
+            /* リサイズハンドルがキャンバスと干渉しないようにする */
+            pointer-events: auto;
+        }
+
+        .ui-resizable-se {
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            background: #6699ff;
+            border: 2px solid #fff;
+            box-sizing: border-box;
+            cursor: se-resize;
+            position: absolute;
+        }
+        
+        /* リサイズ中にキャンバスを保護 */
+        .ui-resizable-resizing ~ #paintbody,
+        .ui-resizable-resizing #paintbody {
+            pointer-events: none !important;
+        }
+        
+        /* リサイズハンドルがキャンバスと干渉しないようにする */
+        .ui-resizable-handle {
+            pointer-events: auto !important;
+        }
+
+        /* エラーメッセージのスタイル */
+        .error-message {
+            display: none;
+            color: red;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        /* 各コンポーネント固有のスタイル */
+        .palette-textarea textarea,
+        .palette-textbox input[type="text"],
+        .palette-button input[type="button"] {
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        /* ユーザーモード時に非表示にするスタイル */
+        body.user-mode .palette-top {
+            visibility: hidden;
+            height: 20px;
+        }
+        
+        body.user-mode .ui-resizable-handle {
+            display: none;
+        }
+
+        body.user-mode .palette-container {
+            box-shadow: none;
+        }
+
+        /* 強制的に .ui-dialog の z-index を高く設定 */
+        .ui-dialog {
+            z-index: 3000 !important;
+        }
+
+        /* モード切り替えボタンのスタイル */
+        #modeButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 2000; /* コンポーネントより上に表示 */
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #6699ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #modeButton:hover {
+            background-color: #5588ee;
+        }
+
+        /* メニュー設定入力欄のスタイル */
+        .menu_config {
+            width: 90%;
+            margin: 4px auto 8px;
+            padding: 4px;
+            display: block;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .palette-figure {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .palette-figure img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border: none;
+        }
+
+        .palette-container[data-component-type="figure"] {
+            z-index: 500;
+        }
+
+        /* プルダウンメニュー用のスタイル */
+        .palette-dropdown select {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-container[data-component-type="dropdown"] {
+            z-index: 1000;
+        }
+
+        /* Algebrite端末コンポーネント用のスタイル */
+        .palette-algebrite {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-algebrite textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-algebrite button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-algebrite button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="algebrite"] {
+            z-index: 1000;
+        }
+
+        /* Nerdamer端末コンポーネント用のスタイル */
+        .palette-nerdamer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-nerdamer textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-nerdamer button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-nerdamer button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="nerdamer"] {
+            z-index: 1000;
+        }
+
+        /* Python端末コンポーネント用のスタイル */
+        .palette-python {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-python .python-output-area {
+            flex: 1;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 150px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .palette-python .python-output-line {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .palette-python .python-input-line {
+            color: #4ec9b0;
+        }
+
+        .palette-python .python-result-line {
+            color: #d4d4d4;
+        }
+
+        .palette-python .python-error-line {
+            color: #f48771;
+        }
+
+        .palette-python .python-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .palette-python .python-input {
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .palette-python .python-execute-button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-python .python-execute-button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="python"] {
+            z-index: 1000;
+        }
+
+        /* TeXコンポーネント用のスタイル */
+        .palette-tex {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-tex .tex-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-tex textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-tex button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-tex button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-tex .tex-display-area {
+            flex: 1;
+            min-height: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-tex .tex-input-area {
+            display: none;
+        }
+
+        body.user-mode .palette-tex .tex-display-area {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="tex"] {
+            z-index: 1000;
+        }
+
+        /* TeX数式表示コンポーネント用のスタイル */
+        .palette-tex-display {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-tex-display .tex-display-area {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        .palette-container[data-component-type="tex-display"] {
+            z-index: 1000;
+        }
+
+        /* Markdownコンポーネント用のスタイル */
+        .palette-markdown {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-markdown .markdown-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-markdown textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-markdown button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-markdown button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-markdown .markdown-display-area {
+            flex: 1;
+            min-height: 100px;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-markdown .markdown-input-area {
+            display: none;
+        }
+
+        body.user-mode .palette-markdown .markdown-display-area {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="markdown"] {
+            z-index: 1000;
+        }
+
+        /* LLMコンポーネント用のスタイル */
+        .palette-llm {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-llm .llm-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-llm textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-llm button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-llm button:hover {
+            background-color: #5588ee;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-llm .llm-input-area {
+            display: none;
+        }
+
+        .palette-container[data-component-type="llm"] {
+            z-index: 1000;
+        }
+
+        /* Markdown表示コンポーネント用のスタイル */
+        .palette-markdown-display {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-markdown-display .markdown-display-area {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        .palette-container[data-component-type="markdown-display"] {
+            z-index: 1000;
+        }
+
+        /* Cinderellaコンポーネント用のスタイル */
+        .palette-cinderella {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .palette-cinderella > div {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="cinderella"] {
+            z-index: 500;
+        }
+
+        /* 表計算コンポーネント用のスタイル */
+        .palette-spreadsheet {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-spreadsheet .spreadsheet-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .palette-spreadsheet .spreadsheet-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .palette-spreadsheet .spreadsheet-btn:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-spreadsheet .spreadsheet-area {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow: auto;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-container[data-component-type="spreadsheet"] {
+            z-index: 1000;
+        }
+
+        /* EChartsコンポーネント用のスタイル */
+        .palette-echart {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .palette-echart .echart-container {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .palette-container[data-component-type="echart"] {
+            z-index: 1000;
+        }
+
+        /* Terminalコンポーネント用のスタイル */
+        .palette-terminal {
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .palette-terminal .xterm-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="terminal"] {
+            z-index: 1000;
+        }
+
+        /* ペイントシステム用のスタイル */
+        #paintbody {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1; /* デフォルトではコンポーネントの下に配置（背景レイヤー） */
+        }
+        
+        /* PAINT ONがチェックされているとき、ペイントキャンバスを最前面に配置 */
+        body.paint-on #paintbody {
+            z-index: 2000; /* コンポーネントより上に配置 */
+        }
+        
+        /* KEEPがチェックされているとき、ペイントキャンバスを最前面に配置（PAINT ONがオフでも） */
+        body.paint-keep #paintbody {
+            z-index: 2000; /* コンポーネントより上に配置 */
+        }
+        
+        /* PAINT ONがチェックされているとき、コンポーネントのpointer-eventsを無効化してペイントを通す */
+        body.paint-on .palette-container {
+            pointer-events: none;
+        }
+        
+        /* PAINT ONがチェックされているときでも、コンポーネントのタイトルバーは操作可能 */
+        body.paint-on .palette-top {
+            pointer-events: auto;
+        }
+        
+        /* PAINT ONがチェックされているときでも、リサイズハンドルは操作可能 */
+        body.paint-on .ui-resizable-handle {
+            pointer-events: auto;
+        }
+        
+        /* PAINT ONがチェックされているとき、コンポーネント内の入力要素もペイントを通す */
+        /* ただし、入力要素を操作したい場合は、PAINT ONをオフにする必要がある */
+        body.paint-on .palette-container textarea,
+        body.paint-on .palette-container input,
+        body.paint-on .palette-container select,
+        body.paint-on .palette-container button,
+        body.paint-on .palette-container iframe {
+            pointer-events: none;
+        }
+        
+        /* ただし、コンポーネントのタイトルバーのボタンは操作可能 */
+        body.paint-on .palette-top .buttons button {
+            pointer-events: auto;
+        }
+
+        #paintbody .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #paintbody .mainCanvas,
+        #paintbody .tempCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            border: none;
+        }
+
+        #paintmenu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2500;
+            pointer-events: auto;
+        }
+
+        .paint-menu-container {
+            position: relative;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            min-width: 200px;
+        }
+        
+        .paint-menu-titlebar {
+            background: #4a90e2;
+            color: white;
+            padding: 5px 10px;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .paint-menu-content {
+            padding: 10px;
+        }
+
+        /* ファイル転送コンポーネント用のスタイル */
+        .palette-filetransfer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            font-family: 'Segoe UI', 'Meiryo', sans-serif;
+            font-size: 13px;
+            overflow: hidden;
+        }
+
+        .palette-filetransfer .ft-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        .palette-filetransfer .ft-toolbar button {
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid #bbb;
+            border-radius: 3px;
+            background: #e8e8e8;
+            cursor: pointer;
+        }
+
+        .palette-filetransfer .ft-toolbar button:hover {
+            background: #d0d0d0;
+        }
+
+        .palette-filetransfer .ft-path-bar {
+            flex: 1;
+            padding: 2px 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .palette-filetransfer .ft-path-bar span {
+            cursor: pointer;
+            color: #0066cc;
+        }
+
+        .palette-filetransfer .ft-path-bar span:hover {
+            text-decoration: underline;
+        }
+
+        .palette-filetransfer .ft-path-bar .ft-path-sep {
+            color: #888;
+            cursor: default;
+            margin: 0 2px;
+        }
+
+        .palette-filetransfer .ft-status {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #666;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .palette-filetransfer .ft-file-list {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+
+        .palette-filetransfer .ft-header {
+            display: flex;
+            padding: 4px 8px;
+            background: #e8e8e8;
+            border-bottom: 1px solid #ccc;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            user-select: none;
+        }
+
+        .palette-filetransfer .ft-header-name {
+            flex: 1;
+        }
+
+        .palette-filetransfer .ft-header-size {
+            width: 80px;
+            text-align: right;
+        }
+
+        .palette-filetransfer .ft-header-date {
+            width: 130px;
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .palette-filetransfer .ft-item {
+            display: flex;
+            align-items: center;
+            padding: 3px 8px;
+            cursor: default;
+            user-select: none;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .palette-filetransfer .ft-item:hover {
+            background-color: #e8f0fe;
+        }
+
+        .palette-filetransfer .ft-item.selected {
+            background-color: #cce5ff;
+        }
+
+        .palette-filetransfer .ft-item-icon {
+            width: 20px;
+            font-size: 14px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .palette-filetransfer .ft-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 4px;
+        }
+
+        .palette-filetransfer .ft-item-name.ft-is-dir {
+            font-weight: 500;
+        }
+
+        .palette-filetransfer .ft-item-size {
+            width: 80px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+        }
+
+        .palette-filetransfer .ft-item-date {
+            width: 130px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+            padding-right: 8px;
+        }
+
+        .palette-filetransfer .ft-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        .ft-context-menu {
+            position: fixed;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            min-width: 140px;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .ft-context-menu .ft-ctx-item {
+            padding: 6px 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .ft-context-menu .ft-ctx-item:hover {
+            background-color: #e8f0fe;
+        }
+
+        .palette-container[data-component-type="filetransfer"] {
+            z-index: 1000;
+        }
+
+        /* 音声文字変換コンポーネント用のスタイル */
+        .palette-container[data-component-type="speech"] {
+            z-index: 1000;
+        }
+
+        .palette-top .buttons .speech-record-btn {
+            background-color: #4caf50;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-record-btn.recording {
+            background-color: #f44336;
+            animation: speech-pulse 1s infinite;
+        }
+
+        @keyframes speech-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .palette-top .buttons .speech-stop-btn {
+            background-color: #757575;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-copy-btn {
+            background-color: #2196f3;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-clear-btn {
+            background-color: #ff9800;
+            font-size: 12px;
+        }
+
+        /* ユーザーモードでも音声文字変換コンポーネントのタイトルバーを表示 */
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top {
+            visibility: visible;
+        }
+
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .title,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .user-mode-toggle-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .toggle-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .execute-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .delete-button {
+            display: none;
+        }
+    </style>
+<style id="_goober"> .go1475592160{height:0;}.go1671063245{height:auto;}.go1888806478{display:flex;flex-wrap:wrap;flex-grow:1;}@media (min-width:600px){.go1888806478{flex-grow:initial;min-width:288px;}}.go167266335{background-color:#313131;font-size:0.875rem;line-height:1.43;letter-spacing:0.01071em;color:#fff;align-items:center;padding:6px 16px;border-radius:4px;box-shadow:0px 3px 5px -1px rgba(0,0,0,0.2),0px 6px 10px 0px rgba(0,0,0,0.14),0px 1px 18px 0px rgba(0,0,0,0.12);}.go3162094071{padding-left:20px;}.go3844575157{background-color:#313131;}.go1725278324{background-color:#43a047;}.go3651055292{background-color:#d32f2f;}.go4215275574{background-color:#ff9800;}.go1930647212{background-color:#2196f3;}.go946087465{display:flex;align-items:center;padding:8px 0;}.go703367398{display:flex;align-items:center;margin-left:auto;padding-left:16px;margin-right:-8px;}.go3963613292{width:100%;position:relative;transform:translateX(0);top:0;right:0;bottom:0;left:0;min-width:288px;}.go1141946668{box-sizing:border-box;display:flex;max-height:100%;position:fixed;z-index:1400;height:auto;width:auto;transition:top 300ms ease 0ms,right 300ms ease 0ms,bottom 300ms ease 0ms,left 300ms ease 0ms,max-width 300ms ease 0ms;pointer-events:none;max-width:calc(100% - 40px);}.go1141946668 .notistack-CollapseWrapper{padding:6px 0px;transition:padding 300ms ease 0ms;}@media (max-width:599.95px){.go1141946668{width:100%;max-width:calc(100% - 32px);}}.go3868796639 .notistack-CollapseWrapper{padding:2px 0px;}.go3118922589{top:14px;flex-direction:column;}.go1453831412{bottom:14px;flex-direction:column-reverse;}.go4027089540{left:20px;}@media (min-width:600px){.go4027089540{align-items:flex-start;}}@media (max-width:599.95px){.go4027089540{left:16px;}}.go2989568495{right:20px;}@media (min-width:600px){.go2989568495{align-items:flex-end;}}@media (max-width:599.95px){.go2989568495{right:16px;}}.go4034260886{left:50%;transform:translateX(-50%);}@media (min-width:600px){.go4034260886{align-items:center;}}</style>
+        
+            
+    
+        
+            
+    
+        <script id="registered-compounds-data" type="application/json">
+            {}
+        </script>
+            
+    </head>
+<body style="cursor: auto;" class="">
+    <!-- コンポーネント作成メニュー -->
+    <div id="rightMenu" class="menu ui-draggable">
+        <div class="menu_title ui-draggable-handle">コンポーネント作成メニュー</div>
+        
+        <!-- テキストエリアセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="textarea">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">テキストエリア</span>
+            </div>
+            <div class="menu_section_content" data-content="textarea">
+                <div class="menu_item" id="addTextarea">テキストエリアを追加</div>
+                <input type="text" id="textareaConfig" placeholder="#id .class" class="menu_config">
+                <div id="textareaError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- テキストボックスセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="textbox">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">テキストボックス</span>
+            </div>
+            <div class="menu_section_content" data-content="textbox">
+                <div class="menu_item" id="addTextbox">テキストボックスを追加</div>
+                <input type="text" id="textboxConfig" placeholder="#id .class" class="menu_config">
+                <div id="textboxError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ボタンセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="button">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ボタン</span>
+            </div>
+            <div class="menu_section_content" data-content="button">
+                <div class="menu_item" id="addButton">ボタンを追加</div>
+                <input type="text" id="buttonConfig" placeholder="#id .class" class="menu_config">
+                <input type="text" id="buttonLabelConfig" placeholder="ボタンのラベル" class="menu_config">
+                <div id="buttonError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- PDFセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="pdf">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">PDF</span>
+            </div>
+            <div class="menu_section_content" data-content="pdf">
+                <div class="menu_item" id="addPDF">PDFファイルを読み込む</div>
+                <input type="text" id="pdfConfig" placeholder="#id .class" class="menu_config">
+                <div id="pdfError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 絵セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="figure">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">絵</span>
+            </div>
+            <div class="menu_section_content" data-content="figure">
+                <div class="menu_item" id="addFigure">絵を読み込む</div>
+                <input type="text" id="figureConfig" placeholder="#id .class" class="menu_config">
+                <div id="figureError" class="error-message">無効な形式です</div>
+                <input type="file" id="figureFileInput" accept="image/*" style="display:none;">
+            </div>
+        </div>
+
+        <!-- iframeセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="iframe">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">iframe</span>
+            </div>
+            <div class="menu_section_content" data-content="iframe">
+                <div class="menu_item" id="addIframe">iframeを追加</div>
+                <input type="text" id="iframeConfig" placeholder="#id .class" class="menu_config">
+                <input type="text" id="iframeUrlConfig" placeholder="URL" class="menu_config">
+                <input type="number" id="iframeRefreshSecondsConfig" placeholder="リフレッシュ時間（秒）" class="menu_config" min="1" step="1">
+                <div id="iframeError" class="error-message" style="display: none;">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- プルダウンメニューセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="dropdown">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">プルダウン</span>
+            </div>
+            <div class="menu_section_content" data-content="dropdown">
+                <div class="menu_item" id="addDropdown">プルダウンメニューを追加</div>
+                <input type="text" id="dropdownConfig" placeholder="#id .class" class="menu_config">
+                <textarea id="dropdownOptionsConfig" placeholder="選択肢を1行に1つずつ入力
+例:
+選択肢1
+選択肢2
+選択肢3" class="menu_config" rows="4"></textarea>
+                <div id="dropdownError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Algebrite端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="algebrite">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Algebrite端末</span>
+            </div>
+            <div class="menu_section_content" data-content="algebrite">
+                <div class="menu_item" id="addAlgebrite">Algebrite端末を追加</div>
+                <input type="text" id="algebriteConfig" placeholder="#id .class" class="menu_config">
+                <div id="algebriteError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Nerdamer端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="nerdamer">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Nerdamer端末</span>
+            </div>
+            <div class="menu_section_content" data-content="nerdamer">
+                <div class="menu_item" id="addNerdamer">Nerdamer端末を追加</div>
+                <input type="text" id="nerdamerConfig" placeholder="#id .class" class="menu_config">
+                <div id="nerdamerError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Python端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="python">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Python端末</span>
+            </div>
+            <div class="menu_section_content" data-content="python">
+                <div class="menu_item" id="addPython">Python端末を追加</div>
+                <input type="text" id="pythonConfig" placeholder="#id .class" class="menu_config">
+                <div id="pythonError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Terminalセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="terminal">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Terminal</span>
+            </div>
+            <div class="menu_section_content" data-content="terminal">
+                <div class="menu_item" id="addTerminal">Terminalを追加</div>
+                <input type="text" id="terminalConfig" placeholder="#id .class" class="menu_config">
+                <div style="padding: 4px; font-size: 11px;">
+                    <div style="margin-bottom: 4px;">
+                        <label>ホスト名:
+                            <input type="text" id="terminalHost" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="example.com">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロトコル:
+                            <select id="terminalProtocol" class="menu_config" style="width: 100%; margin-top: 2px;">
+                                <option value="telnet">Telnet</option>
+                                <option value="ssh">SSH</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="terminalSshVersionGroup" style="margin-bottom: 4px; display: none;">
+                        <label>SSHバージョン:
+                            <select id="terminalSshVersion" class="menu_config" style="width: 100%; margin-top: 2px;">
+                                <option value="ssh1">SSH1</option>
+                                <option value="ssh2" selected="">SSH2</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>ポート:
+                            <input type="number" id="terminalPort" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="23 (Telnet) / 22 (SSH)">
+                        </label>
+                    </div>
+                    <div id="terminalUsernameGroup" style="margin-bottom: 4px; display: none;">
+                        <label>ユーザー名:
+                            <input type="text" id="terminalUsername" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="ユーザー名">
+                        </label>
+                    </div>
+                    <div id="terminalPasswordGroup" style="margin-bottom: 4px; display: none;">
+                        <label>パスワード:
+                            <input type="password" id="terminalPassword" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="パスワード">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロキシURL:
+                            <input type="text" id="terminalProxyUrl" class="menu_config" style="width: 100%; margin-top: 2px;" value="ws://162.43.41.89:8022" placeholder="ws://162.43.41.89:8022">
+                        </label>
+                    </div>
+                </div>
+                <div id="terminalError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ファイル転送セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="filetransfer">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ファイル転送</span>
+            </div>
+            <div class="menu_section_content" data-content="filetransfer">
+                <div class="menu_item" id="addFileTransfer">ファイル転送を追加</div>
+                <input type="text" id="filetransferConfig" placeholder="#id .class" class="menu_config">
+                <div style="padding: 4px; font-size: 11px;">
+                    <div style="margin-bottom: 4px;">
+                        <label>ホスト名:
+                            <input type="text" id="ftHost" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="example.com">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>フォルダ:
+                            <input type="text" id="ftFolder" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="/home/user">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>ユーザー名:
+                            <input type="text" id="ftUsername" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="ユーザー名">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>パスワード:
+                            <input type="password" id="ftPassword" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="パスワード">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロキシURL:
+                            <input type="text" id="ftProxyUrl" class="menu_config" style="width: 100%; margin-top: 2px;" value="ws://162.43.41.89:8022" placeholder="ws://162.43.41.89:8022">
+                        </label>
+                    </div>
+                </div>
+                <div id="filetransferError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- TeXセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="tex">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">TeX</span>
+            </div>
+            <div class="menu_section_content" data-content="tex">
+                <div class="menu_item" id="addTeX">TeXを追加</div>
+                <input type="text" id="texConfig" placeholder="#id .class" class="menu_config">
+                <div id="texError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Markdownセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="markdown">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Markdown</span>
+            </div>
+            <div class="menu_section_content" data-content="markdown">
+                <div class="menu_item" id="addMarkdown">Markdownを追加</div>
+                <input type="text" id="markdownConfig" placeholder="#id .class" class="menu_config">
+                <div id="markdownError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- LLMセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="llm">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">LLM</span>
+            </div>
+            <div class="menu_section_content" data-content="llm">
+                <div class="menu_item" id="addLLM">LLMを追加</div>
+                <input type="text" id="llmConfig" placeholder="#id .class" class="menu_config">
+                <div id="llmError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- LM Studioセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="lmstudio">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">LM Studio</span>
+            </div>
+            <div class="menu_section_content" data-content="lmstudio">
+                <div class="menu_item" id="addLMStudio">LM Studioを追加</div>
+                <input type="text" id="lmstudioConfig" placeholder="#id .class" class="menu_config">
+                <div id="lmstudioError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Cinderellaセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="cinderella">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Cinderella</span>
+            </div>
+            <div class="menu_section_content" data-content="cinderella">
+                <div class="menu_item" id="addCinderella">Cinderellaファイルを読み込む</div>
+                <input type="text" id="cinderellaConfig" placeholder="#id .class" class="menu_config">
+                <div id="cinderellaError" class="error-message">無効な形式です</div>
+                <input type="file" id="cinderellaFileInput" accept=".html,.htm" style="display:none;">
+            </div>
+        </div>
+
+        <!-- 表計算セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="spreadsheet">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">表計算</span>
+            </div>
+            <div class="menu_section_content" data-content="spreadsheet">
+                <div class="menu_item" id="addSpreadsheet">表計算を追加</div>
+                <input type="text" id="spreadsheetConfig" placeholder="#id .class" class="menu_config">
+                <div id="spreadsheetError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- EChartsセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="echart">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ECharts</span>
+            </div>
+            <div class="menu_section_content" data-content="echart">
+                <div class="menu_item" id="addEChart">Echartを追加</div>
+                <input type="text" id="echartConfig" placeholder="#id .class" class="menu_config">
+                <div id="echartError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 音声文字変換セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="speech">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">音声文字変換</span>
+            </div>
+            <div class="menu_section_content" data-content="speech">
+                <div class="menu_item" id="addSpeech">音声文字変換を追加</div>
+                <input type="text" id="speechConfig" placeholder="#id .class" class="menu_config">
+                <div id="speechError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ペイントセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="paint">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ペイント</span>
+            </div>
+            <div class="menu_section_content" data-content="paint">
+                <div style="padding: 4px;">
+                    <input type="checkbox" id="paintOnCheckbox" class="painton">PAINT ON<br>
+                    <input type="checkbox" id="paintKeepCheckbox" class="paintkeep">KEEP
+                </div>
+            </div>
+        </div>
+
+        <!-- コンパウンドセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="compound">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">コンパウンド</span>
+            </div>
+            <div class="menu_section_content" data-content="compound">
+                <div class="menu_item" id="addCompound">コンパウンドを追加</div>
+                <input type="text" id="compoundConfig" placeholder="#id .class" class="menu_config">
+                <div id="compoundError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 初期化設定セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="init-settings">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">初期化設定</span>
+            </div>
+            <div class="menu_section_content" data-content="init-settings">
+                <div class="menu_item" id="toggleUserSystemArea">開く</div>
+            </div>
+        </div>
+
+        <!-- コンパウンドメニューセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="compound-menu">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">コンパウンドメニュー</span>
+            </div>
+            <div class="menu_section_content" data-content="compound-menu">
+                <select id="compoundMenuSelect" style="width: 100%; padding: 4px; margin-bottom: 4px;"><option value="">登録されたコンパウンドを選択</option></select>
+                <div class="menu_item" id="createRegisteredCompound">コンパウンド作成</div>
+                <input type="text" id="registeredCompoundConfig" placeholder="#id .class" class="menu_config">
+                <div id="registeredCompoundError" class="error-message" style="display: none;">無効な形式です</div>
+                <div class="menu_item" id="deleteRegisteredCompound" style="margin-top: 4px;">メニュー削除</div>
+                <div class="menu_item" id="exportRegisteredCompound" style="margin-top: 4px;">Export</div>
+                <div class="menu_item" id="importRegisteredCompound" style="margin-top: 4px;">Import</div>
+                <input type="file" id="compoundImportFileInput" accept=".cpd" style="display: none;">
+            </div>
+        </div>
+
+        <!-- 保存ボタンセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="save">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">保存</span>
+            </div>
+            <div class="menu_section_content" data-content="save">
+                <div class="menu_item" id="saveButton">💾 保存</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隠しファイル入力フィールド -->
+    <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;">
+
+    <!-- パスワード入力モーダル -->
+    
+
+    <!-- モード切り替えボタン -->
+    <button id="modeButton">モード: 編集</button>
+
+    <!-- ペイントシステム用の要素 -->
+    <div id="paintbody" style="top: 0px; margin: auto; position: absolute; pointer-events: none;">
+        <div class="container" style="position: relative; width: 100%; height: 100%;">
+            <canvas class="mainCanvas" style="touch-action: none; border: none; position: absolute; top: 0px; left: 0px;" width="1148" height="1025"></canvas>
+            <canvas class="tempCanvas" style="touch-action: none; border: none; position: absolute; top: 0px; left: 0px;" width="1148" height="1025"></canvas>
+        </div>
+    </div>
+    <div id="paintmenu" style="pointer-events: auto;">
+<div class="paint-menu-container" style="position: fixed; top: 20px; left: 20px; transform: translate(-15.1515px, 41.2121px);">
+  <div class="paint-menu-titlebar" style="background: #4a90e2; color: white; padding: 4px 8px; cursor: move;">
+    ペイントメニュー
+  </div>
+  <div style="padding: 4px;">
+    <input type="checkbox" class="painton">PAINT ON<br>
+    <input type="checkbox" class="paintkeep">KEEP
+  </div>
+
+  <div class="paintmenubody" style="display: none;">
+    <!-- モード選択 -->
+    <div class="card-body border rounded" style="padding: 4px; margin: 4px;">
+      <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">モード</h5>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="mode" value="1" checked="">描く
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="mode" value="2">消しゴム
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="mode" value="3">選択
+        </label>
+      </div>
+    </div>
+
+    <!-- 描き込みタイプ -->
+    <div class="card-body border rounded" id="input-type-area" style="padding: 4px; margin: 4px;">
+      <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">描き込みタイプ</h5>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="1" checked="">ペン
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="2">直線
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="3">短径
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="4">円
+        </label>
+      </div>
+    </div>
+
+    <!-- 太さ, 透過度 -->
+    <div class="card-body border rounded" id="range-area" style="padding: 4px; margin: 4px;">
+      <div class="col" id="size-area">
+        <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">太さ</h5>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-thickness" value="1" checked="" onchange="lightPaint.sizeChange(this.value)">&nbsp;1  
+          <input type="radio" name="paint-thickness" value="2" onchange="lightPaint.sizeChange(this.value)">&nbsp;2  
+          <input type="radio" name="paint-thickness" value="4" onchange="lightPaint.sizeChange(this.value)">&nbsp;4  
+          <input type="radio" name="paint-thickness" value="8" onchange="lightPaint.sizeChange(this.value)">&nbsp;8
+        </div>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-thickness" value="15" onchange="lightPaint.sizeChange(this.value)">15  
+          <input type="radio" name="paint-thickness" value="30" onchange="lightPaint.sizeChange(this.value)">30  
+          <input type="radio" name="paint-thickness" value="50" onchange="lightPaint.sizeChange(this.value)">50  
+          <input type="radio" name="paint-thickness" value="100" onchange="lightPaint.sizeChange(this.value)">100
+        </div>
+      </div>
+      <div class="col" id="transparent-area">
+        <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">透過度</h5>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-alpha" value="1" checked="" onchange="lightPaint.alphaChange(this.value)">&nbsp;1  
+          <input type="radio" name="paint-alpha" value="0.8" onchange="lightPaint.alphaChange(this.value)">0.8  
+          <input type="radio" name="paint-alpha" value="0.5" onchange="lightPaint.alphaChange(this.value)">0.5  
+          <input type="radio" name="paint-alpha" value="0.3" onchange="lightPaint.alphaChange(this.value)">0.3
+        </div>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-alpha" value="0.2" onchange="lightPaint.alphaChange(this.value)">0.2  
+          <input type="radio" name="paint-alpha" value="0.1" onchange="lightPaint.alphaChange(this.value)">0.1  
+          <input type="radio" name="paint-alpha" value="0.05" onchange="lightPaint.alphaChange(this.value)">0.05  
+          <input type="radio" name="paint-alpha" value="0.01" onchange="lightPaint.alphaChange(this.value)">0.01
+        </div>
+      </div>
+    </div>
+
+    <!-- カラーピッカー -->
+    <div class="card-body border rounded" id="color-picker-area" style="padding: 4px; margin: 4px;">
+      <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">色</h5>
+      <div class="rounded" style="background-color: whitesmoke;">
+        <input class="colorpicker" type="text" style="display: none;"><div class="sp-replacer sp-light"><div class="sp-preview"><div class="sp-preview-inner" style="background-color: rgb(0, 0, 0);"></div></div><div class="sp-dd">▼</div></div>
+      </div>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="card-body border rounded" id="undo-area" style="padding: 4px; margin: 4px;">
+        <div class="rounded" style="background-color: whitesmoke;">
+            <input type="button" value="戻る" onclick="lightPaint.obj[0].prevCanvas()">
+            <input type="button" value="進む" onclick="lightPaint.obj[0].nextCanvas()">
+            <input type="button" value="クリア" onclick="lightPaint.obj[0].resetCanvas(); lightPaint.obj[0].setLocalStoreage();">
+            <input type="button" value="保存" onclick="lightPaint.obj[0].saveAsHTML()">
+        </div>
+    </div>
+  </div>
+</div>
+</div>
+    
+    <!-- ペイントデータ保存用のtextarea（非表示） -->
+    <textarea id="paint-canvas-data" style="display:none;">data:image/png;base64,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</textarea>
+    
+    <!-- ペイントデータ読み込み用のスクリプト -->
+    <script id="load-canvas-image-script">
+        (function() {
+            // 画像読み込み関数を一度だけ定義
+            if (window.loadCanvasImage) return;
+            window.loadCanvasImage = function() {
+                const dataArea = document.getElementById('paint-canvas-data');
+                if (!dataArea || !dataArea.value) return;
+                
+                const canvas = document.querySelector('#paintbody .mainCanvas');
+                if (!canvas) {
+                    // キャンバスがまだ存在しない場合は少し待ってから再試行
+                    setTimeout(loadCanvasImage, 100);
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0);
+                    console.log('ペイントデータを復元しました');
+                };
+                img.onerror = function() {
+                    console.error('ペイントデータの読み込みに失敗しました');
+                };
+                img.src = dataArea.value;
+            };
+            
+            // DOMContentLoaded時に一度だけ実行
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadCanvasImage);
+            } else {
+                // 既に読み込み済みの場合は少し待ってから実行（lightPaintの初期化を待つ）
+                setTimeout(loadCanvasImage, 500);
+            }
+        })();
+    </script>
+
+    <script>
+    // Terminalメニュー内のプロトコル選択に応じてSSHバージョン入力の表示を切り替え
+    $(document).ready(function() {
+        function updateTerminalSshVisibility() {
+            const protocol = $('#terminalProtocol').val();
+            if (protocol === 'ssh') {
+                $('#terminalSshVersionGroup').show();
+                $('#terminalUsernameGroup').show();
+                $('#terminalPasswordGroup').show();
+                const portVal = $('#terminalPort').val().trim();
+                if (!portVal || portVal === '23') {
+                    $('#terminalPort').val('22');
+                }
+            } else {
+                $('#terminalSshVersionGroup').hide();
+                $('#terminalUsernameGroup').hide();
+                $('#terminalPasswordGroup').hide();
+                const portVal = $('#terminalPort').val().trim();
+                if (!portVal || portVal === '22') {
+                    $('#terminalPort').val('23');
+                }
+            }
+        }
+
+        $('#terminalProtocol').on('change', updateTerminalSshVisibility);
+        // 初期状態反映
+        updateTerminalSshVisibility();
+    });
+    </script>
+
+<script src="pcode1.js"></script>
+
+<script>
+$(document).ready(function() {
+    // ペイントシステムの初期化
+    // 画面全体のサイズを取得
+    const paintWidth = window.innerWidth;
+    const paintHeight = window.innerHeight;
+    
+    console.log("ペイントシステム初期化: width=" + paintWidth + ", height=" + paintHeight);
+    
+    // キャンバスが存在するか確認
+    const mainCanvas = document.querySelector('#paintbody .mainCanvas');
+    const tempCanvas = document.querySelector('#paintbody .tempCanvas');
+    
+    if (!mainCanvas || !tempCanvas) {
+        console.error("キャンバスが見つかりません");
+        return;
+    }
+    
+    // lightPaintクラスのインスタンスを作成
+    if (typeof lightPaint !== 'undefined') {
+        lightPaint.obj[0] = new lightPaint('paintbody', 'paintmenu', paintWidth, paintHeight);
+        console.log("lightPaint.obj[0] = ", lightPaint.obj[0]);
+        
+        // ペイントデータの読み込み（保存されたデータがある場合）
+        if (typeof loadCanvasImage === 'function') {
+            // lightPaintの初期化後に少し待ってから読み込み
+            setTimeout(function() {
+                loadCanvasImage();
+            }, 200);
+        }
+        
+        // メニューの「PAINT ON」チェックボックスにイベントリスナーを追加
+        // 右側メニューとペイントメニュー内の両方のチェックボックスを同期
+        function syncPaintOnState(isChecked) {
+            // 両方のチェックボックスを同期
+            $('#paintOnCheckbox').prop('checked', isChecked);
+            $('#paintmenu .painton').prop('checked', isChecked);
+            
+            if (isChecked) {
+                console.log("PAINT ON チェックされました");
+                // bodyにpaint-onクラスを追加
+                $('body').addClass('paint-on');
+                $('#paintbody').css('pointer-events', 'auto');
+                $('#paintmenu .paintmenubody').show();
+            } else {
+                console.log("PAINT ON チェック外れました");
+                // bodyからpaint-onクラスを削除
+                $('body').removeClass('paint-on');
+                $('#paintbody').css('pointer-events', 'none');
+                $('#paintmenu .paintmenubody').hide();
+            }
+        }
+        
+        // KEEP状態を更新する関数
+        function syncPaintKeepState(isChecked) {
+            // 両方のチェックボックスを同期
+            $('#paintKeepCheckbox').prop('checked', isChecked);
+            $('#paintmenu .paintkeep').prop('checked', isChecked);
+            
+            if (isChecked) {
+                console.log("KEEP チェックされました");
+                $('body').addClass('paint-keep');
+            } else {
+                console.log("KEEP チェック外れました");
+                $('body').removeClass('paint-keep');
+            }
+        }
+        
+        // 右側メニューのPAINT ONチェックボックス
+        $('#paintOnCheckbox').on('change', function() {
+            syncPaintOnState($(this).prop('checked'));
+        });
+        
+        // 右側メニューのKEEPチェックボックス
+        $('#paintKeepCheckbox').on('change', function() {
+            syncPaintKeepState($(this).prop('checked'));
+        });
+        
+        // ペイントメニュー内のPAINT ONチェックボックス（paint_5a.jsで設定されるが、念のため追加）
+        $(document).on('change', '#paintmenu .painton', function() {
+            syncPaintOnState($(this).prop('checked'));
+        });
+        
+        // ペイントメニュー内のKEEPチェックボックス
+        $(document).on('change', '#paintmenu .paintkeep', function() {
+            syncPaintKeepState($(this).prop('checked'));
+        });
+    } else {
+        console.error("lightPaintクラスが読み込まれていません");
+    }
+    
+    // ウィンドウリサイズ時にキャンバスサイズを更新
+    $(window).on('resize', function() {
+        if (lightPaint && lightPaint.obj[0]) {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            
+            // キャンバスサイズを更新
+            lightPaint.obj[0].mainCanvas.width = newWidth;
+            lightPaint.obj[0].mainCanvas.height = newHeight;
+            lightPaint.obj[0].tempCanvas.width = newWidth;
+            lightPaint.obj[0].tempCanvas.height = newHeight;
+        }
+    });
+});
+</script>
+
+<script>
+function get_ketmath_input_raw() {
+
+  return(document.querySelector('iframe').contentWindow.cdy.evalcs('Text2').value.text);
+
+}
+
+function get_ketmath_input() {
+
+  return(get_ketmath_input_raw().split("=")[1]);
+
+}
+
+function query_chatgpt(question) {
+
+  if (question.trim() !== "") {
+    const encodedQuestion = encodeURIComponent(question);
+    const url = `https://chatgpt.com/?q=${encodedQuestion}`;
+	window.open(url, '_blank');
+  } else {
+    alert("質問を入力してください。");
+  }
+
+}
+</script>
+
+
+
+<div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons" aria-describedby="passwordModal" style="display: none;" aria-labelledby="ui-id-1"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix"><span id="ui-id-1" class="ui-dialog-title">パスワード認証</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div><div class="palette-container ui-draggable ui-resizable" id="test_iframe" data-component-type="iframe" style="left: 200px; top: 162.635px; width: 691px; height: 830px;" data-left="200px" data-top="162.635px" data-width="691px" data-height="830px" data-url="kettaskv1F260525.html" data-refresh-seconds=""><div class="palette-top ui-draggable-handle"><span class="title">Iframe (ID: test_iframe)</span><div class="buttons"><button title="iframeを再読込">⟳</button><input type="range" min="50" max="200" class="iframe-zoom-slider" title="拡大・縮小"><button title="ユーザーモードと編集モードの両方で表示" class="user-mode-toggle-button">U</button><button title="コンポーネントをアイコン化" class="iconify-button">□</button><button title="子要素の表示/非表示" class="toggle-button">+</button><button title="子要素のコードを実行" class="execute-button">▶</button><button title="コンポーネントを削除" class="delete-button">×</button></div></div><div class="palette-body"><iframe style="width: 100%; height: 100%; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial;" src="kettaskv1F260525.html"></iframe></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div></div><div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons" aria-describedby="passwordModal" style="height: auto; width: 400px; top: 447.685px; left: 403.633px; display: none;" aria-labelledby="ui-id-1"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix"><span id="ui-id-1" class="ui-dialog-title">&nbsp;</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div><div class="palette-container ui-draggable ui-resizable" id="component-1781485849840-121" data-component-type="button" style="left: 390px; top: 21.1042px; width: 150px; height: 60px;" data-linked-child="component-1781485852952-195" data-child-visible="false" data-left="390px" data-top="21.1042px" data-width="150px" data-height="60px" data-label="Button"><div class="palette-top ui-draggable-handle"><span class="title">Button</span><div class="buttons"><button title="ユーザーモードと編集モードの両方で表示" class="user-mode-toggle-button">U</button><button title="コンポーネントをアイコン化" class="iconify-button">□</button><button title="子要素の表示/非表示" class="toggle-button">+</button><button title="子要素のコードを実行" class="execute-button">▶</button><button title="コンポーネントを削除" class="delete-button">×</button></div></div><div class="palette-body"><input type="button" value="Button"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div></div><div class="palette-container ui-draggable ui-resizable" id="component-1781485852952-195" data-component-type="textarea" style="left: 586px; top: 38.1042px; width: 383px; height: 89px; display: none;" data-left="586px" data-top="38.1042px" data-width="383px" data-height="89px" data-content="const question = get_ketmath_input_raw();
+query_chatgpt(question);"><div class="palette-top ui-draggable-handle"><span class="title">Textarea</span></div><div class="palette-body"><textarea style="width: 331.667px; height: 47.6667px;"></textarea></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div></div><div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons" aria-describedby="passwordModal" style="height: auto; width: 400px; top: 405.199px; left: 370.194px; display: none;" aria-labelledby="ui-id-1"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix"><span id="ui-id-1" class="ui-dialog-title">&nbsp;</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div id="passwordModal" class="ui-dialog-content ui-widget-content" style="width: auto; min-height: 15.4369px; max-height: none; height: auto;">
+        <p>パスワードを入力してください:</p>
+        <input type="password" id="passwordInput" style="width: 100%;">
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div></body></html>
