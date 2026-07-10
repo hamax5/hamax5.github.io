@@ -3362,12 +3362,12 @@ a1=(S.x-0);
 
 f1(x):=1/2*(x-3)^3-1*(x-3)+3;
 fd1(x):=3/2*(x-3)^2-1;
-Plotdata("2","f1(x)","x=[1.23,4.77]",["Num=300"]);
+Plotdata("2","f1(x)","x=[1.268,4.732]",["Num=300"]);
 
 P1=[a1,f1(a1)];
 
-A1=[1.23,f1(1.23)];
-B1=[4.77,f1(4.77)];
+A1=[1.268,f1(1.268)];
+B1=[4.732,f1(4.732)];
 Listplot("1",[A1,B1],["id","Color=black"]);
 Listplot("2",[P1,[P1.x,0]],["id","Color=red"]);
 
@@ -3407,14 +3407,14 @@ var cdy = CindyJS({
   angleUnit: "°",
   geometry: [
     {name: "SW", type: "Free", pos: [4.0, 4.0, -4.0], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "NE", type: "Free", pos: [4.0, 3.29553166698063, 0.592670599553069], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
-    {name: "S", type: "Free", pos: [2.450686586148796, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: false, size: 10.0, border: true }
+    {name: "NE", type: "Free", pos: [4.0, 3.3333333333333335, 0.6666666666666666], color: [1.0,1.0,1.0], labeled: false, size: 2.0, border:false },
+    {name: "S", type: "Free", pos: [2.72696965896997, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: false, size: 10.0, border: true }
   ],
   ports: [{
     width: 442,
     height: 380,
     id: "CSCanvas",
-    transform: [{visibleRect: [-2.029821920590948, 5.830817584364303, 7.467095732478906, -2.333953248591678]}],
+    transform: [{visibleRect: [-1.8301516087645329, 5.228694292309226, 6.803409894026215, -2.1938246467416436]}],
     grid: 1.0,
     snap: true,
     background: "rgb(247,247,247)"
