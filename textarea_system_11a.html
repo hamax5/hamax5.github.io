@@ -1,0 +1,2359 @@
+<!DOCTYPE html>
+
+<!--
+
+# システムの仕様
+
+ユーザーがウェブページ上で動的にコンポーネント（テキストエリア、テキストボックス、ボタン、PDFビューアーなど）を追加・操作できるインタラクティブなインターフェースを提供する。
+以下に、システムの動作とその内容について詳細に解説します。
+
+## システムの概要
+
+### 主な機能
+
+1. **コンポーネントの追加**:
+    - **テキストエリア**、**テキストボックス**、**ボタン**、**PDFビューアー**などのコンポーネントを、右側のメニューから簡単に追加できます。
+    - 各コンポーネントはドラッグ可能で、ページ上の任意の位置に配置できます。
+    - **コンポーネント作成メニュー** 上の各コンポーネントの作成ボタンの下に空欄があり、そこに id や class などを入力することで、そのコンポーネントのidやclassを設定できます。詳しい設定方法は下記の通りです。
+    - #xxx, .yyy のときは id名を xxx とし、クラス名に yyy を追加します。#xxx のときは id名を xxx とします。 yyy のときは、クラス名に yyy を追加します。id名を設定するときは、すでにその id名が使われていないかをチェックします。
+    - コンポーネントは好きな数だけ追加できる。
+    
+2. **コンポーネントの操作**:
+    - **ドラッグによる移動**: コンポーネントはタイトルバーをドラッグすることで、ページ上の任意の位置に移動できます。
+    - **リサイズ**: 各コンポーネントは右下隅にリサイズハンドルがあり、ユーザーはコンポーネントのサイズを自由に変更できます。
+    - **子コンポーネントの管理**: 各コンポーネントには、子要素を表示/非表示にするボタンや、子要素のコードを実行するボタン、コンポーネントを削除するボタンがあります。
+
+3. **モードの切り替え**:
+    - **編集モード**: コンポーネントの追加やリサイズ、ドラッグが可能です。
+    - **ユーザーモード**: 編集機能が制限され、コンポーネントの操作ができなくなります。編集モードへの切り替えにはパスワード認証が必要です。
+
+4. **PDF表示機能**:
+    - PDFファイルをアップロードし、PDF.jsを使用してウェブページ上に表示します。PDFビューアーもリサイズ可能で、他のコンポーネントと同様にドラッグできます。
+
+5. **状態の保存**:
+    - 現在のページの状態（追加されたコンポーネントの配置や内容）をHTMLファイルとして保存できます。保存されたHTMLファイルを開くことで、以前の状態を復元できます。
+
+### システムの構成
+
+#### 1. HTML構造
+
+- **メニュー** (`#rightMenu`):
+    - コンポーネントを追加するためのボタン群（テキストエリア、テキストボックス、ボタン、PDFファイルの追加）。
+    - 保存ボタンも含まれています。
+
+- **隠しファイル入力フィールド** (`#pdfFileInput`):
+    - PDFファイルを選択するためのファイル入力フィールド。ユーザーには表示されず、メニューの「PDFファイルを読み込む」ボタンからトリガーされます。
+
+- **パスワード入力モーダル** (`#passwordModal`):
+    - 編集モードに切り替える際に表示されるパスワード入力ダイアログ。jQuery UIのダイアログ機能を使用しています。
+
+- **モード切り替えボタン** (`#modeButton`):
+    - 現在のモード（編集モードまたはユーザーモード）を表示し、クリックすることでモードを切り替えます。
+
+#### 2. CSSスタイル
+
+- **メニューとコンポーネントのスタイリング**:
+    - メニューや各コンポーネントの外観を整えるためのスタイルが定義されています。
+    - コンポーネントは`flex`レイアウトを使用して内部要素が親コンテナにフィットするように設定されています。
+    - リサイズハンドルやドラッグ可能なタイトルバーのスタイルも含まれています。
+
+- **モーダルの`z-index`調整**:
+    - パスワード入力モーダルが他のコンポーネントの背後に隠れないように、`.ui-dialog`クラスの`z-index`を高く設定しています。
+
+#### 3. JavaScriptロジック
+
+- **ライブラリの読み込み**:
+    - jQuery、jQuery UI、PDF.jsをCDNから読み込んでいます。
+
+- **コンポーネント管理**:
+    - **`PaletteComponent`**:
+        - すべてのコンポーネントの基底クラス。共通の機能（ドラッグ、リサイズ、子コンポーネントの管理など）を提供します。
+    - **`PaletteTextarea`、`PaletteTextbox`、`PaletteButton`、`PalettePDF`**:
+        - `PaletteComponent`を継承した各コンポーネントの具体的なクラス。各コンポーネント特有の機能や初期設定を行います。
+        - 各クラスは、コンポーネントの初期サイズ、リサイズ可能範囲、内部要素の生成方法などを定義しています。
+
+- **モード管理**:
+    - **編集モード**:
+        - コンポーネントの追加、リサイズ、ドラッグが可能。
+        - メニューが表示され、ユーザーは新しいコンポーネントを追加できます。
+    - **ユーザーモード**:
+        - 編集機能が制限され、コンポーネントの操作ができなくなります。
+        - メニューが非表示になり、ページの表示がシンプルになります。
+        - 編集モードへの切り替えにはパスワード認証が必要です。
+
+- **パスワード認証**:
+    - 編集モードに戻る際に、パスワード入力モーダルが表示されます。
+    - 正しいパスワード（例: "Yamaguchi"）を入力すると編集モードに切り替わります。
+    - モーダルの`z-index`が高く設定されているため、他のコンポーネントに隠れることなく前面に表示されます。
+
+- **PDF表示機能**:
+    - ユーザーがPDFファイルをアップロードすると、PDF.jsを使用して最初のページをウェブページ上にレンダリングします。
+    - PDFビューアーもリサイズ可能で、ユーザーは表示サイズを自由に変更できます。
+
+- **状態の保存**:
+    - 「💾 保存」ボタンをクリックすると、現在のページのHTML全体が保存されます。
+    - 保存されたHTMLファイルを開くと、保存時点のコンポーネント配置や内容が復元されます。
+
+### 具体的な動作の流れ
+
+1. **コンポーネントの追加**:
+    - 右側のメニューから「テキストエリア」、「テキストボックス」、「ボタン」、または「PDFファイルを読み込む」を選択します。
+    - 選択されたコンポーネントがページ上に追加され、初期サイズが設定されます。
+    - 各コンポーネントはドラッグ可能で、リサイズハンドルを使用してサイズを調整できます。
+
+2. **コンポーネントの操作**:
+    - **タイトルバーのボタン**:
+        - **子要素の表示/非表示**: `+`ボタンをクリックすると子コンポーネント（例: テキストエリア）が表示され、`-`に変わります。再度クリックすると子コンポーネントが非表示になります。
+        - **子要素のコード実行**: `▶`ボタンをクリックすると、子コンポーネントに入力されたコードが実行されます。例として、PDFの表示/非表示の切り替えが可能です。
+        - **コンポーネントの削除**: `×`ボタンをクリックすると、対象のコンポーネントがページから削除されます。
+        - **子要素のボタン**: 子要素自身にはボタンはありません。
+
+3. **モードの切り替え**:
+    - **編集モードからユーザーモード**:
+        - 「モード」ボタンをクリックすると、編集モードからユーザーモードに切り替わります。
+        - ユーザーモードでは、コンポーネントのリサイズやドラッグ、編集機能が制限されます。
+        - メニューが非表示になり、ページの表示がシンプルになります。
+    - **ユーザーモードから編集モード**:
+        - 「モード」ボタンを再度クリックすると、パスワード入力モーダルが表示されます。
+        - 正しいパスワードを入力すると、編集モードに戻ります。
+        - モーダルは他のコンポーネントに隠れずに表示されます。
+
+4. **PDFの読み込みと表示**:
+    - 「PDFファイルを読み込む」ボタンをクリックすると、ファイル選択ダイアログが表示されます。
+    - 選択したPDFファイルがPDF.jsを使用してレンダリングされ、ページ上に表示されます。
+    - PDFビューアーもリサイズ可能で、ユーザーは表示サイズを調整できます。
+
+5. **状態の保存と復元**:
+    - 「💾 保存」ボタンをクリックすると、現在のページのHTML全体が保存されます。
+    - 保存されたHTMLファイルをブラウザで開くと、保存時点のコンポーネント配置や内容が復元されます。
+
+## コードの構成と主要な部分
+
+### 1. コンポーネントクラス
+
+- **`PaletteComponent`（基底クラス）**:
+    - すべてのコンポーネントの共通機能を提供します。
+    - ドラッグ＆ドロップ、リサイズ、子コンポーネントの管理、タイトルバーの生成などの基本的な機能が含まれます。
+
+- **具体的なコンポーネントクラス**:
+    - **`PaletteTextarea`**:
+        - テキストエリアコンポーネントを管理します。
+        - 初期サイズやリサイズ範囲が設定されています。
+    - **`PaletteTextbox`**:
+        - テキストボックスコンポーネントを管理します。
+        - 初期サイズやリサイズ範囲が設定されています。
+    - **`PaletteButton`**:
+        - ボタンコンポーネントを管理します。
+        - ボタンのラベルやリサイズ範囲が設定されています。
+    - **`PalettePDF`**:
+        - PDFビューアーコンポーネントを管理します。
+        - PDF.jsを使用してPDFをレンダリングし、リサイズ可能なビューアーとして機能します。
+    - **`PaletteFigure`**:
+        - Figureビューアーコンポーネントを管理します。
+        - Figureをレンダリングし、リサイズ可能なビューアーとして機能します。
+
+### 2. コンポーネントの登録と生成
+
+- **`componentRegistry`**:
+    - 各コンポーネントクラスをタイプごとに登録します。例えば、`'textarea'`には`PaletteTextarea`クラスが対応しています。
+
+- **`genComponent`関数**:
+    - 指定されたタイプのコンポーネントを生成します。例えば、`genComponent('textbox')`と呼び出すと、`PaletteTextbox`クラスのインスタンスが作成されます。
+
+### 3. モード管理とパスワード認証
+
+- **`isEditMode`変数**:
+    - 現在のモードを示すフラグ。`true`が編集モード、`false`がユーザーモードです。
+
+- **`switchToUserMode`と`switchToEditMode`関数**:
+    - モードの切り替えを管理します。編集モードではコンポーネントの操作が可能で、ユーザーモードでは操作が制限されます。
+
+- **パスワード入力モーダル**:
+    - 編集モードに戻る際に表示され、正しいパスワードを入力すると編集モードに切り替わります。
+    - モーダルの`z-index`が高く設定されているため、他のコンポーネントの後ろに隠れることなく表示されます。
+
+### 4. PDF表示機能
+
+- **PDF.jsの設定**:
+    - PDF.jsライブラリを使用してPDFをウェブページ上にレンダリングします。
+    - PDFファイルがアップロードされると、最初のページがキャンバスに描画されます。
+
+- **`PalettePDF`クラスの機能**:
+    - PDFの読み込み、レンダリング、リサイズを管理します。
+    - リサイズ時にPDFの縦横比を維持しながらキャンバスを再描画します。
+
+### 5. 状態の保存と復元
+
+- **`saveCurrentState`関数**:
+    - 現在のページのHTML全体を保存します。
+    - 各コンポーネントの位置、サイズ、内容が保存され、後で同じ状態を復元できます。
+
+- **ページ読み込み時のコンポーネント復元**:
+    - 保存されたHTMLファイルを開くと、既存のコンポーネントが再初期化され、前回の状態が復元されます。
+
+## 具体的な操作手順
+
+1. **コンポーネントの追加**:
+    - 右側のメニューから追加したいコンポーネント（テキストエリア、テキストボックス、ボタン、PDFビューアー）を選択します。
+    - 選択されたコンポーネントがページ上に表示されます。
+
+2. **コンポーネントの配置とサイズ調整**:
+    - 各コンポーネントはドラッグ可能で、ページ上の任意の位置に移動できます。
+    - 右下隅のリサイズハンドルをドラッグすることで、コンポーネントのサイズを調整できます。
+
+3. **コンポーネントの操作**:
+    - **タイトルバーのボタン**:
+        - **`+`ボタン**: 子コンポーネント（例: テキストエリア）を表示/非表示にします。
+        - **`▶`ボタン**: 子コンポーネントに入力されたコードを実行します。
+        - **`×`ボタン**: コンポーネントをページから削除します。
+
+4. **モードの切り替え**:
+    - 「モード」ボタンをクリックして編集モードとユーザーモードを切り替えます。
+    - 編集モードへの切り替え時にはパスワード認証が求められます。正しいパスワードを入力すると編集モードに戻ります。
+
+5. **PDFの表示**:
+    - 「PDFファイルを読み込む」ボタンをクリックしてPDFファイルを選択します。
+    - 選択されたPDFファイルがページ上に表示され、リサイズやドラッグが可能です。
+
+6. **状態の保存**:
+    - 「💾 保存」ボタンをクリックすると、現在のページの状態がHTMLファイルとしてダウンロードされます。
+    - 保存されたHTMLファイルを開くと、前回の状態が復元されます。
+
+## デザインとユーザー体験の向上
+
+- **インターフェースの直感性**:
+    - ドラッグ＆ドロップやリサイズ機能により、ユーザーは直感的にコンポーネントを操作できます。
+    - タイトルバーのボタン配置により、子コンポーネントの管理やコンポーネントの削除が容易です。
+
+- **セキュリティとアクセス制御**:
+    - 編集モードへのアクセスにはパスワード認証が必要なため、不正な編集を防止できます。
+    - ユーザーモードでは編集機能が制限され、コンテンツの一貫性が保たれます。
+
+- **レスポンシブデザイン**:
+    - コンポーネントはリサイズ可能であり、異なる画面サイズやデバイスに柔軟に対応します。
+    - PDFビューアーも縦横比を維持しながらリサイズされるため、視認性が向上します。
+
+## 技術的な詳細と改善点
+
+- **jQueryとjQuery UIの活用**:
+    - ドラッグ＆ドロップやリサイズ機能を簡単に実装できるjQuery UIを活用しています。
+    - モーダルダイアログの実装にもjQuery UIの`dialog`機能を使用しています。
+
+- **PDF.jsの統合**:
+    - PDF.jsを使用して、PDFファイルをブラウザ上で高品質にレンダリングしています。
+    - PDFビューアーはリサイズ可能で、ユーザーは表示サイズを自由に調整できます。
+
+- **クラスベースのコンポーネント設計**:
+    - `PaletteComponent`を基底クラスとし、各コンポーネントクラス（`PaletteTextarea`、`PaletteTextbox`、`PaletteButton`、`PalettePDF`、`PaletteFigure`）が継承しています。
+    - この設計により、共通の機能を効率的に再利用し、コードの保守性を向上させています。
+
+- **状態管理と復元**:
+    - コンポーネントの状態（位置、サイズ、内容）を保存し、後で復元できる機能を提供しています。
+    - 保存機能はページ全体のHTMLをシリアライズすることで実現されており、シンプルな実装となっています。
+
+## まとめ
+
+現在のシステムは、ユーザーがウェブページ上で自由にコンポーネントを追加・操作できる柔軟なインターフェースを提供しています。ドラッグ＆ドロップやリサイズ機能、PDF表示機能など、多彩な機能を備えており、直感的な操作が可能です。また、編集モードとユーザーモードの切り替えにより、セキュリティとアクセス制御も実現しています。
+
+今後の改善点としては、以下のような点が考えられます：
+
+- **コンポーネントのバリエーション拡充**:
+    - 他の種類のコンポーネント（例えば、画像、動画、グラフなど）を追加することで、システムの汎用性を高める。
+  
+- **レスポンシブデザインの強化**:
+    - より多様なデバイスや画面サイズに対応するため、レスポンシブデザインを強化する。
+  
+- **保存機能の拡張**:
+    - ローカルストレージやサーバーサイドの保存機能を追加し、ユーザーが複数の状態を管理できるようにする。
+  
+- **ユーザーインターフェースの改善**:
+    - コンポーネントの操作性をさらに向上させるため、UI/UXの細部を改善する。
+
+本システムは、ユーザーがウェブページ上でインタラクティブにコンテンツを作成・編集できる強力なツールとなっています。
+
+-->
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>動的コンポーネントシステム with PDF.js</title>
+    <!-- jQueryとjQuery UIを読み込む -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    
+    <!-- PDF.js をCDNから読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
+    
+    <!-- Algebrite を指定URLから読み込む -->
+    <script src="https://ktky.sakura.ne.jp/lib/algebrite/algebrite.bundle-for-browser.js"></script>
+    
+    <!-- Nerdamer をCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.min.js"></script>
+    
+    <!-- KaTeX をCDNから読み込む -->
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    
+    <!-- marked.js をCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    
+    <!-- spectrum.js（カラーピッカーライブラリ）の読み込み -->
+    <script src="https://ktky.sakura.ne.jp/lib/palette/spectrum.js"></script>
+    <link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/palette/spectrum.css">
+    
+    <!-- お絵描き機能本体を定義しているJSファイル -->
+    <script src="paint_5a.js"></script>
+    
+    <!-- CindyJS を読み込む -->
+    <link rel="stylesheet" href="https://cindyjs.org/dist/v0.8/CindyJS.css">
+    <script type="text/javascript" src="https://cindyjs.org/dist/v0.8/Cindy.js"></script>
+
+   <!--  KetCindyjs を読み込む -->
+    <link rel="stylesheet" href="ketcindyjs/CindyJS.css">
+   <script type="text/javascript" src="ketcindyjs/Cindy.js"></script>
+    
+    <!-- Pyodide を読み込む（Python実行用） -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    
+    <!-- jspreadsheet CE を読み込む -->
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css">
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css">
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    
+    <!-- SheetJS (xlsx) を読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Apache ECharts を読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <!-- Xterm.js を読み込む -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    
+    <style>
+        /* メニューのスタイル */
+        #rightMenu {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #f0f0f0;
+            border-left: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            z-index: 2000; /* コンポーネントより上に表示 */
+        }
+
+        /* メニュータイトルのスタイル */
+        .menu_title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: move; /* ドラッグ可能 */
+            background-color: #e0e0e0; /* 薄い灰色 */
+            padding: 1px 4px; /* パディングをさらに減らす */
+            border-radius: 4px;
+            font-size: 12px; /* フォントサイズを少し小さく */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* メニューセクションのスタイル */
+        .menu_section {
+            margin-bottom: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        /* メニューセクションヘッダーのスタイル */
+        .menu_section_header {
+            padding: 4px 6px;
+            background-color: #e8e8e8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .menu_section_header:hover {
+            background-color: #d0d0d0;
+        }
+
+        .menu_toggle_icon {
+            display: inline-block;
+            width: 12px;
+            text-align: center;
+            font-size: 10px;
+            margin-right: 4px;
+            transition: transform 0.2s;
+        }
+
+        .menu_section_header.collapsed .menu_toggle_icon {
+            transform: rotate(-90deg);
+        }
+
+        .menu_section_title {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* メニューセクションコンテンツのスタイル */
+        .menu_section_content {
+            padding: 4px;
+            display: block;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.2s ease-out;
+        }
+
+        .menu_section_content.collapsed {
+            max-height: 0 !important;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+        }
+
+        /* メニューアイテムのスタイル */
+        .menu_item {
+            padding: 6px;
+            margin-bottom: 4px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .menu_item:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* 隠すクラス */
+        .hidden {
+            display: none;
+        }
+
+        /* コンポーネントの共通スタイル */
+        .palette-container {
+            position: absolute;
+            background-color: transparent; /* 背景を透明に変更 */
+            box-sizing: border-box;
+            border: none;
+            border-radius: 4px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: none; /* 影も削除して完全に透明に */
+            overflow: visible;
+        }
+
+        /* PDFコンポーネント用のz-index設定 */
+        .palette-container[data-component-type="pdf"] {
+            z-index: 500;
+        }
+
+        /* テキストエリア、テキストボックス、ボタンコンポーネント用のz-index設定 */
+        .palette-container[data-component-type="textarea"],
+        .palette-container[data-component-type="textbox"],
+        .palette-container[data-component-type="button"] {
+            z-index: 1000;
+        }
+
+        /* パレットトップ（タイトルバー）のスタイル */
+        .palette-top {
+            cursor: move;
+            background-color: #f0f0f0;
+            padding: 1px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            height: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .palette-top .title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            white-space: nowrap;
+            overflow: visible;
+            flex-grow: 1;
+            margin-right: 8px;
+        }
+
+        .palette-top .buttons {
+            display: flex;
+            gap: 1px;
+        }
+
+        .palette-top .buttons .iframe-zoom-slider {
+            width: 40px;
+            height: 16px;
+            padding: 0;
+            margin-right: 2px;
+        }
+
+        /* iframeコンポーネントではbodyのpaddingを除去し、中身をコンテナ端まで表示 */
+        .palette-container[data-component-type="iframe"] .palette-body {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .palette-container[data-component-type="iframe"] .palette-body iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-top .buttons button {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            cursor: pointer;
+            border: none;
+            background-color: #6699ff;
+            font-size: 16px;
+            line-height: 1;
+            color: #fff;
+            border-radius: 2px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .palette-top .buttons button:hover {
+            background-color: #6699ff;
+            transform: scale(1.1);
+        }
+
+        /* 操作ボタンに特定の色を割り当て */
+        .palette-top .buttons .user-mode-toggle-button {
+            background-color: #ffaa00;
+        }
+
+        .palette-top .buttons .toggle-button {
+            background-color: #6699ff;
+        }
+
+        .palette-top .buttons .execute-button {
+            background-color: #66ff66;
+        }
+
+        .palette-top .buttons .delete-button {
+            background-color: #ff6666;
+        }
+
+        /* パレットボディのスタイル */
+        .palette-body {
+            flex-grow: 1;
+            flex-shrink: 1;
+            flex-basis: 0;
+            min-height: 0;
+            width: 100%;
+            position: relative;
+            padding: 8px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: stretch;
+            background-color: transparent; /* 背景を透明に変更 */
+        }
+
+        /* PDF表示コンテナのスタイル */
+        .palette-pdf {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* PDFコントロールのスタイル */
+        .palette-pdf .pdf-controls {
+            flex-shrink: 0;
+        }
+
+        /* PDFキャンバスコンテナのスタイル */
+        .palette-pdf .pdf-canvas-container {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+
+        /* PDF表示用canvasのスタイル */
+        .palette-pdf canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* サイズ調整ハンドルのスタイル */
+        .ui-resizable-handle {
+            z-index: 1001; /* コンポーネント内の要素より前面に表示 */
+            /* リサイズハンドルがキャンバスと干渉しないようにする */
+            pointer-events: auto;
+        }
+
+        .ui-resizable-se {
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            background: #6699ff;
+            border: 2px solid #fff;
+            box-sizing: border-box;
+            cursor: se-resize;
+            position: absolute;
+        }
+        
+        /* リサイズ中にキャンバスを保護 */
+        .ui-resizable-resizing ~ #paintbody,
+        .ui-resizable-resizing #paintbody {
+            pointer-events: none !important;
+        }
+        
+        /* リサイズハンドルがキャンバスと干渉しないようにする */
+        .ui-resizable-handle {
+            pointer-events: auto !important;
+        }
+
+        /* エラーメッセージのスタイル */
+        .error-message {
+            display: none;
+            color: red;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        /* 各コンポーネント固有のスタイル */
+        .palette-textarea textarea,
+        .palette-textbox input[type="text"],
+        .palette-button input[type="button"] {
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        /* ユーザーモード時に非表示にするスタイル */
+        body.user-mode .palette-top {
+            visibility: hidden;
+            height: 20px;
+        }
+        
+        body.user-mode .ui-resizable-handle {
+            display: none;
+        }
+
+        body.user-mode .palette-container {
+            box-shadow: none;
+        }
+
+        /* 強制的に .ui-dialog の z-index を高く設定 */
+        .ui-dialog {
+            z-index: 3000 !important;
+        }
+
+        /* モード切り替えボタンのスタイル */
+        #modeButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 2000; /* コンポーネントより上に表示 */
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #6699ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #modeButton:hover {
+            background-color: #5588ee;
+        }
+
+        /* メニュー設定入力欄のスタイル */
+        .menu_config {
+            width: 90%;
+            margin: 4px auto 8px;
+            padding: 4px;
+            display: block;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .palette-figure {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .palette-figure img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border: none;
+        }
+
+        .palette-container[data-component-type="figure"] {
+            z-index: 500;
+        }
+
+        /* プルダウンメニュー用のスタイル */
+        .palette-dropdown select {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-container[data-component-type="dropdown"] {
+            z-index: 1000;
+        }
+
+        /* Algebrite端末コンポーネント用のスタイル */
+        .palette-algebrite {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-algebrite textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-algebrite button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-algebrite button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="algebrite"] {
+            z-index: 1000;
+        }
+
+        /* Nerdamer端末コンポーネント用のスタイル */
+        .palette-nerdamer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-nerdamer textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-nerdamer button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-nerdamer button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="nerdamer"] {
+            z-index: 1000;
+        }
+
+        /* Python端末コンポーネント用のスタイル */
+        .palette-python {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-python .python-output-area {
+            flex: 1;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 150px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .palette-python .python-output-line {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .palette-python .python-input-line {
+            color: #4ec9b0;
+        }
+
+        .palette-python .python-result-line {
+            color: #d4d4d4;
+        }
+
+        .palette-python .python-error-line {
+            color: #f48771;
+        }
+
+        .palette-python .python-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .palette-python .python-input {
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .palette-python .python-execute-button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-python .python-execute-button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="python"] {
+            z-index: 1000;
+        }
+
+        /* TeXコンポーネント用のスタイル */
+        .palette-tex {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-tex .tex-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-tex textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-tex button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-tex button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-tex .tex-display-area {
+            flex: 1;
+            min-height: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-tex .tex-input-area {
+            display: none;
+        }
+
+        body.user-mode .palette-tex .tex-display-area {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="tex"] {
+            z-index: 1000;
+        }
+
+        /* TeX数式表示コンポーネント用のスタイル */
+        .palette-tex-display {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-tex-display .tex-display-area {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        .palette-container[data-component-type="tex-display"] {
+            z-index: 1000;
+        }
+
+        /* Markdownコンポーネント用のスタイル */
+        .palette-markdown {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-markdown .markdown-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-markdown textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-markdown button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-markdown button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-markdown .markdown-display-area {
+            flex: 1;
+            min-height: 100px;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-markdown .markdown-input-area {
+            display: none;
+        }
+
+        body.user-mode .palette-markdown .markdown-display-area {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="markdown"] {
+            z-index: 1000;
+        }
+
+        /* LLMコンポーネント用のスタイル */
+        .palette-llm {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-llm .llm-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-llm textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-llm button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-llm button:hover {
+            background-color: #5588ee;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-llm .llm-input-area {
+            display: none;
+        }
+
+        .palette-container[data-component-type="llm"] {
+            z-index: 1000;
+        }
+
+        /* Markdown表示コンポーネント用のスタイル */
+        .palette-markdown-display {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-markdown-display .markdown-display-area {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        .palette-container[data-component-type="markdown-display"] {
+            z-index: 1000;
+        }
+
+        /* Cinderellaコンポーネント用のスタイル */
+        .palette-cinderella {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .palette-cinderella > div {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="cinderella"] {
+            z-index: 500;
+        }
+
+        /* 表計算コンポーネント用のスタイル */
+        .palette-spreadsheet {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-spreadsheet .spreadsheet-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .palette-spreadsheet .spreadsheet-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .palette-spreadsheet .spreadsheet-btn:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-spreadsheet .spreadsheet-area {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow: auto;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-container[data-component-type="spreadsheet"] {
+            z-index: 1000;
+        }
+
+        /* EChartsコンポーネント用のスタイル */
+        .palette-echart {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .palette-echart .echart-container {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .palette-container[data-component-type="echart"] {
+            z-index: 1000;
+        }
+
+        /* Terminalコンポーネント用のスタイル */
+        .palette-terminal {
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .palette-terminal .xterm-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="terminal"] {
+            z-index: 1000;
+        }
+
+        /* ペイントシステム用のスタイル */
+        #paintbody {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1; /* デフォルトではコンポーネントの下に配置（背景レイヤー） */
+        }
+        
+        /* PAINT ONがチェックされているとき、ペイントキャンバスを最前面に配置 */
+        body.paint-on #paintbody {
+            z-index: 2000; /* コンポーネントより上に配置 */
+        }
+        
+        /* KEEPがチェックされているとき、ペイントキャンバスを最前面に配置（PAINT ONがオフでも） */
+        body.paint-keep #paintbody {
+            z-index: 2000; /* コンポーネントより上に配置 */
+        }
+        
+        /* PAINT ONがチェックされているとき、コンポーネントのpointer-eventsを無効化してペイントを通す */
+        body.paint-on .palette-container {
+            pointer-events: none;
+        }
+        
+        /* PAINT ONがチェックされているときでも、コンポーネントのタイトルバーは操作可能 */
+        body.paint-on .palette-top {
+            pointer-events: auto;
+        }
+        
+        /* PAINT ONがチェックされているときでも、リサイズハンドルは操作可能 */
+        body.paint-on .ui-resizable-handle {
+            pointer-events: auto;
+        }
+        
+        /* PAINT ONがチェックされているとき、コンポーネント内の入力要素もペイントを通す */
+        /* ただし、入力要素を操作したい場合は、PAINT ONをオフにする必要がある */
+        body.paint-on .palette-container textarea,
+        body.paint-on .palette-container input,
+        body.paint-on .palette-container select,
+        body.paint-on .palette-container button,
+        body.paint-on .palette-container iframe {
+            pointer-events: none;
+        }
+        
+        /* ただし、コンポーネントのタイトルバーのボタンは操作可能 */
+        body.paint-on .palette-top .buttons button {
+            pointer-events: auto;
+        }
+
+        #paintbody .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #paintbody .mainCanvas,
+        #paintbody .tempCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            border: none;
+        }
+
+        #paintmenu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2500;
+            pointer-events: auto;
+        }
+
+        .paint-menu-container {
+            position: relative;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            min-width: 200px;
+        }
+        
+        .paint-menu-titlebar {
+            background: #4a90e2;
+            color: white;
+            padding: 5px 10px;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .paint-menu-content {
+            padding: 10px;
+        }
+
+        /* ファイル転送コンポーネント用のスタイル */
+        .palette-filetransfer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            font-family: 'Segoe UI', 'Meiryo', sans-serif;
+            font-size: 13px;
+            overflow: hidden;
+        }
+
+        .palette-filetransfer .ft-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        .palette-filetransfer .ft-toolbar button {
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid #bbb;
+            border-radius: 3px;
+            background: #e8e8e8;
+            cursor: pointer;
+        }
+
+        .palette-filetransfer .ft-toolbar button:hover {
+            background: #d0d0d0;
+        }
+
+        .palette-filetransfer .ft-path-bar {
+            flex: 1;
+            padding: 2px 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .palette-filetransfer .ft-path-bar span {
+            cursor: pointer;
+            color: #0066cc;
+        }
+
+        .palette-filetransfer .ft-path-bar span:hover {
+            text-decoration: underline;
+        }
+
+        .palette-filetransfer .ft-path-bar .ft-path-sep {
+            color: #888;
+            cursor: default;
+            margin: 0 2px;
+        }
+
+        .palette-filetransfer .ft-status {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #666;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .palette-filetransfer .ft-file-list {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+
+        .palette-filetransfer .ft-header {
+            display: flex;
+            padding: 4px 8px;
+            background: #e8e8e8;
+            border-bottom: 1px solid #ccc;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            user-select: none;
+        }
+
+        .palette-filetransfer .ft-header-name {
+            flex: 1;
+        }
+
+        .palette-filetransfer .ft-header-size {
+            width: 80px;
+            text-align: right;
+        }
+
+        .palette-filetransfer .ft-header-date {
+            width: 130px;
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .palette-filetransfer .ft-item {
+            display: flex;
+            align-items: center;
+            padding: 3px 8px;
+            cursor: default;
+            user-select: none;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .palette-filetransfer .ft-item:hover {
+            background-color: #e8f0fe;
+        }
+
+        .palette-filetransfer .ft-item.selected {
+            background-color: #cce5ff;
+        }
+
+        .palette-filetransfer .ft-item-icon {
+            width: 20px;
+            font-size: 14px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .palette-filetransfer .ft-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 4px;
+        }
+
+        .palette-filetransfer .ft-item-name.ft-is-dir {
+            font-weight: 500;
+        }
+
+        .palette-filetransfer .ft-item-size {
+            width: 80px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+        }
+
+        .palette-filetransfer .ft-item-date {
+            width: 130px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+            padding-right: 8px;
+        }
+
+        .palette-filetransfer .ft-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        .ft-context-menu {
+            position: fixed;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            min-width: 140px;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .ft-context-menu .ft-ctx-item {
+            padding: 6px 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .ft-context-menu .ft-ctx-item:hover {
+            background-color: #e8f0fe;
+        }
+
+        .palette-container[data-component-type="filetransfer"] {
+            z-index: 1000;
+        }
+
+        /* 音声文字変換コンポーネント用のスタイル */
+        .palette-container[data-component-type="speech"] {
+            z-index: 1000;
+        }
+
+        .palette-top .buttons .speech-record-btn {
+            background-color: #4caf50;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-record-btn.recording {
+            background-color: #f44336;
+            animation: speech-pulse 1s infinite;
+        }
+
+        @keyframes speech-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .palette-top .buttons .speech-stop-btn {
+            background-color: #757575;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-copy-btn {
+            background-color: #2196f3;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-clear-btn {
+            background-color: #ff9800;
+            font-size: 12px;
+        }
+
+        /* ユーザーモードでも音声文字変換コンポーネントのタイトルバーを表示 */
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top {
+            visibility: visible;
+        }
+
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .title,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .user-mode-toggle-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .toggle-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .execute-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .delete-button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- コンポーネント作成メニュー -->
+    <div id="rightMenu" class="menu">
+        <div class="menu_title">コンポーネント作成メニュー</div>
+        
+        <!-- テキストエリアセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="textarea">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">テキストエリア</span>
+            </div>
+            <div class="menu_section_content" data-content="textarea">
+                <div class="menu_item" id="addTextarea">テキストエリアを追加</div>
+                <input type="text" id="textareaConfig" placeholder="#id .class" class="menu_config">
+                <div id="textareaError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- テキストボックスセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="textbox">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">テキストボックス</span>
+            </div>
+            <div class="menu_section_content" data-content="textbox">
+                <div class="menu_item" id="addTextbox">テキストボックスを追加</div>
+                <input type="text" id="textboxConfig" placeholder="#id .class" class="menu_config">
+                <div id="textboxError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ボタンセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="button">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ボタン</span>
+            </div>
+            <div class="menu_section_content" data-content="button">
+                <div class="menu_item" id="addButton">ボタンを追加</div>
+                <input type="text" id="buttonConfig" placeholder="#id .class" class="menu_config">
+                <input type="text" id="buttonLabelConfig" placeholder="ボタンのラベル" class="menu_config">
+                <div id="buttonError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- PDFセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="pdf">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">PDF</span>
+            </div>
+            <div class="menu_section_content" data-content="pdf">
+                <div class="menu_item" id="addPDF">PDFファイルを読み込む</div>
+                <input type="text" id="pdfConfig" placeholder="#id .class" class="menu_config">
+                <div id="pdfError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 絵セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="figure">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">絵</span>
+            </div>
+            <div class="menu_section_content" data-content="figure">
+                <div class="menu_item" id="addFigure">絵を読み込む</div>
+                <input type="text" id="figureConfig" placeholder="#id .class" class="menu_config">
+                <div id="figureError" class="error-message">無効な形式です</div>
+                <input type="file" id="figureFileInput" accept="image/*" style="display:none;">
+            </div>
+        </div>
+
+        <!-- iframeセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="iframe">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">iframe</span>
+            </div>
+            <div class="menu_section_content" data-content="iframe">
+                <div class="menu_item" id="addIframe">iframeを追加</div>
+                <input type="text" id="iframeConfig" placeholder="#id .class" class="menu_config">
+                <input type="text" id="iframeUrlConfig" placeholder="URL" class="menu_config">
+                <input type="number" id="iframeRefreshSecondsConfig" placeholder="リフレッシュ時間（秒）" class="menu_config" min="1" step="1">
+                <div id="iframeError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- プルダウンメニューセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="dropdown">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">プルダウン</span>
+            </div>
+            <div class="menu_section_content" data-content="dropdown">
+                <div class="menu_item" id="addDropdown">プルダウンメニューを追加</div>
+                <input type="text" id="dropdownConfig" placeholder="#id .class" class="menu_config">
+                <textarea id="dropdownOptionsConfig" placeholder="選択肢を1行に1つずつ入力&#10;例:&#10;選択肢1&#10;選択肢2&#10;選択肢3" class="menu_config" rows="4"></textarea>
+                <div id="dropdownError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Algebrite端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="algebrite">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Algebrite端末</span>
+            </div>
+            <div class="menu_section_content" data-content="algebrite">
+                <div class="menu_item" id="addAlgebrite">Algebrite端末を追加</div>
+                <input type="text" id="algebriteConfig" placeholder="#id .class" class="menu_config">
+                <div id="algebriteError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Nerdamer端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="nerdamer">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Nerdamer端末</span>
+            </div>
+            <div class="menu_section_content" data-content="nerdamer">
+                <div class="menu_item" id="addNerdamer">Nerdamer端末を追加</div>
+                <input type="text" id="nerdamerConfig" placeholder="#id .class" class="menu_config">
+                <div id="nerdamerError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Python端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="python">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Python端末</span>
+            </div>
+            <div class="menu_section_content" data-content="python">
+                <div class="menu_item" id="addPython">Python端末を追加</div>
+                <input type="text" id="pythonConfig" placeholder="#id .class" class="menu_config">
+                <div id="pythonError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Terminalセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="terminal">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Terminal</span>
+            </div>
+            <div class="menu_section_content" data-content="terminal">
+                <div class="menu_item" id="addTerminal">Terminalを追加</div>
+                <input type="text" id="terminalConfig" placeholder="#id .class" class="menu_config">
+                <div style="padding: 4px; font-size: 11px;">
+                    <div style="margin-bottom: 4px;">
+                        <label>ホスト名:
+                            <input type="text" id="terminalHost" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="example.com">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロトコル:
+                            <select id="terminalProtocol" class="menu_config" style="width: 100%; margin-top: 2px;">
+                                <option value="telnet">Telnet</option>
+                                <option value="ssh">SSH</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="terminalSshVersionGroup" style="margin-bottom: 4px;">
+                        <label>SSHバージョン:
+                            <select id="terminalSshVersion" class="menu_config" style="width: 100%; margin-top: 2px;">
+                                <option value="ssh1">SSH1</option>
+                                <option value="ssh2" selected>SSH2</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>ポート:
+                            <input type="number" id="terminalPort" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="23 (Telnet) / 22 (SSH)">
+                        </label>
+                    </div>
+                    <div id="terminalUsernameGroup" style="margin-bottom: 4px;">
+                        <label>ユーザー名:
+                            <input type="text" id="terminalUsername" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="ユーザー名">
+                        </label>
+                    </div>
+                    <div id="terminalPasswordGroup" style="margin-bottom: 4px;">
+                        <label>パスワード:
+                            <input type="password" id="terminalPassword" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="パスワード">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロキシURL:
+                            <input type="text" id="terminalProxyUrl" class="menu_config" style="width: 100%; margin-top: 2px;" value="ws://162.43.41.89:8022" placeholder="ws://162.43.41.89:8022">
+                        </label>
+                    </div>
+                </div>
+                <div id="terminalError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ファイル転送セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="filetransfer">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ファイル転送</span>
+            </div>
+            <div class="menu_section_content" data-content="filetransfer">
+                <div class="menu_item" id="addFileTransfer">ファイル転送を追加</div>
+                <input type="text" id="filetransferConfig" placeholder="#id .class" class="menu_config">
+                <div style="padding: 4px; font-size: 11px;">
+                    <div style="margin-bottom: 4px;">
+                        <label>ホスト名:
+                            <input type="text" id="ftHost" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="example.com">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>フォルダ:
+                            <input type="text" id="ftFolder" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="/home/user">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>ユーザー名:
+                            <input type="text" id="ftUsername" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="ユーザー名">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>パスワード:
+                            <input type="password" id="ftPassword" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="パスワード">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロキシURL:
+                            <input type="text" id="ftProxyUrl" class="menu_config" style="width: 100%; margin-top: 2px;" value="ws://162.43.41.89:8022" placeholder="ws://162.43.41.89:8022">
+                        </label>
+                    </div>
+                </div>
+                <div id="filetransferError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- TeXセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="tex">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">TeX</span>
+            </div>
+            <div class="menu_section_content" data-content="tex">
+                <div class="menu_item" id="addTeX">TeXを追加</div>
+                <input type="text" id="texConfig" placeholder="#id .class" class="menu_config">
+                <div id="texError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Markdownセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="markdown">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Markdown</span>
+            </div>
+            <div class="menu_section_content" data-content="markdown">
+                <div class="menu_item" id="addMarkdown">Markdownを追加</div>
+                <input type="text" id="markdownConfig" placeholder="#id .class" class="menu_config">
+                <div id="markdownError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- LLMセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="llm">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">LLM</span>
+            </div>
+            <div class="menu_section_content" data-content="llm">
+                <div class="menu_item" id="addLLM">LLMを追加</div>
+                <input type="text" id="llmConfig" placeholder="#id .class" class="menu_config">
+                <div id="llmError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- LM Studioセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="lmstudio">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">LM Studio</span>
+            </div>
+            <div class="menu_section_content" data-content="lmstudio">
+                <div class="menu_item" id="addLMStudio">LM Studioを追加</div>
+                <input type="text" id="lmstudioConfig" placeholder="#id .class" class="menu_config">
+                <div id="lmstudioError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Cinderellaセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="cinderella">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Cinderella</span>
+            </div>
+            <div class="menu_section_content" data-content="cinderella">
+                <div class="menu_item" id="addCinderella">Cinderellaファイルを読み込む</div>
+                <input type="text" id="cinderellaConfig" placeholder="#id .class" class="menu_config">
+                <div id="cinderellaError" class="error-message">無効な形式です</div>
+                <input type="file" id="cinderellaFileInput" accept=".html,.htm" style="display:none;">
+            </div>
+        </div>
+
+        <!-- 表計算セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="spreadsheet">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">表計算</span>
+            </div>
+            <div class="menu_section_content" data-content="spreadsheet">
+                <div class="menu_item" id="addSpreadsheet">表計算を追加</div>
+                <input type="text" id="spreadsheetConfig" placeholder="#id .class" class="menu_config">
+                <div id="spreadsheetError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- EChartsセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="echart">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ECharts</span>
+            </div>
+            <div class="menu_section_content" data-content="echart">
+                <div class="menu_item" id="addEChart">Echartを追加</div>
+                <input type="text" id="echartConfig" placeholder="#id .class" class="menu_config">
+                <div id="echartError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 音声文字変換セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="speech">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">音声文字変換</span>
+            </div>
+            <div class="menu_section_content" data-content="speech">
+                <div class="menu_item" id="addSpeech">音声文字変換を追加</div>
+                <input type="text" id="speechConfig" placeholder="#id .class" class="menu_config">
+                <div id="speechError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ペイントセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="paint">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ペイント</span>
+            </div>
+            <div class="menu_section_content" data-content="paint">
+                <div style="padding: 4px;">
+                    <input type="checkbox" id="paintOnCheckbox" class="painton">PAINT ON<br>
+                    <input type="checkbox" id="paintKeepCheckbox" class="paintkeep">KEEP
+                </div>
+            </div>
+        </div>
+
+        <!-- コンパウンドセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="compound">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">コンパウンド</span>
+            </div>
+            <div class="menu_section_content" data-content="compound">
+                <div class="menu_item" id="addCompound">コンパウンドを追加</div>
+                <input type="text" id="compoundConfig" placeholder="#id .class" class="menu_config">
+                <div id="compoundError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 初期化設定セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="init-settings">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">初期化設定</span>
+            </div>
+            <div class="menu_section_content" data-content="init-settings">
+                <div class="menu_item" id="toggleUserSystemArea">開く</div>
+            </div>
+        </div>
+
+        <!-- コンパウンドメニューセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="compound-menu">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">コンパウンドメニュー</span>
+            </div>
+            <div class="menu_section_content" data-content="compound-menu">
+                <select id="compoundMenuSelect" style="width: 100%; padding: 4px; margin-bottom: 4px;">
+                    <option value="">登録されたコンパウンドを選択</option>
+                </select>
+                <div class="menu_item" id="createRegisteredCompound">コンパウンド作成</div>
+                <input type="text" id="registeredCompoundConfig" placeholder="#id .class" class="menu_config">
+                <div id="registeredCompoundError" class="error-message" style="display: none;">無効な形式です</div>
+                <div class="menu_item" id="deleteRegisteredCompound" style="margin-top: 4px;">メニュー削除</div>
+                <div class="menu_item" id="exportRegisteredCompound" style="margin-top: 4px;">Export</div>
+                <div class="menu_item" id="importRegisteredCompound" style="margin-top: 4px;">Import</div>
+                <input type="file" id="compoundImportFileInput" accept=".cpd" style="display: none;">
+            </div>
+        </div>
+
+        <!-- 保存ボタンセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="save">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">保存</span>
+            </div>
+            <div class="menu_section_content" data-content="save">
+                <div class="menu_item" id="saveButton">💾 保存</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隠しファイル入力フィールド -->
+    <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;">
+
+    <!-- パスワード入力モーダル -->
+    <div id="passwordModal" title="パスワード認証">
+        <p>パスワードを入力してください:</p>
+        <input type="password" id="passwordInput" style="width: 100%;">
+    </div>
+
+    <!-- モード切り替えボタン -->
+    <button id="modeButton">モード: 編集</button>
+
+    <!-- ペイントシステム用の要素 -->
+    <div id="paintbody">
+        <div class="container" style="position: relative; width: 100%; height: 100%;">
+            <canvas class="mainCanvas" style="touch-action: none; border: none; position: absolute; top: 0px; left: 0px;"></canvas>
+            <canvas class="tempCanvas" style="touch-action: none; border: none; position: absolute; top: 0px; left: 0px;"></canvas>
+        </div>
+    </div>
+    <div id="paintmenu"></div>
+    
+    <!-- ペイントデータ保存用のtextarea（非表示） -->
+    <textarea id="paint-canvas-data" style="display:none;"></textarea>
+    
+    <!-- ペイントデータ読み込み用のスクリプト -->
+    <script id="load-canvas-image-script">
+        (function() {
+            // 画像読み込み関数を一度だけ定義
+            if (window.loadCanvasImage) return;
+            window.loadCanvasImage = function() {
+                const dataArea = document.getElementById('paint-canvas-data');
+                if (!dataArea || !dataArea.value) return;
+                
+                const canvas = document.querySelector('#paintbody .mainCanvas');
+                if (!canvas) {
+                    // キャンバスがまだ存在しない場合は少し待ってから再試行
+                    setTimeout(loadCanvasImage, 100);
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0);
+                    console.log('ペイントデータを復元しました');
+                };
+                img.onerror = function() {
+                    console.error('ペイントデータの読み込みに失敗しました');
+                };
+                img.src = dataArea.value;
+            };
+            
+            // DOMContentLoaded時に一度だけ実行
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadCanvasImage);
+            } else {
+                // 既に読み込み済みの場合は少し待ってから実行（lightPaintの初期化を待つ）
+                setTimeout(loadCanvasImage, 500);
+            }
+        })();
+    </script>
+
+    <script>
+    // Terminalメニュー内のプロトコル選択に応じてSSHバージョン入力の表示を切り替え
+    $(document).ready(function() {
+        function updateTerminalSshVisibility() {
+            const protocol = $('#terminalProtocol').val();
+            if (protocol === 'ssh') {
+                $('#terminalSshVersionGroup').show();
+                $('#terminalUsernameGroup').show();
+                $('#terminalPasswordGroup').show();
+                const portVal = $('#terminalPort').val().trim();
+                if (!portVal || portVal === '23') {
+                    $('#terminalPort').val('22');
+                }
+            } else {
+                $('#terminalSshVersionGroup').hide();
+                $('#terminalUsernameGroup').hide();
+                $('#terminalPasswordGroup').hide();
+                const portVal = $('#terminalPort').val().trim();
+                if (!portVal || portVal === '22') {
+                    $('#terminalPort').val('23');
+                }
+            }
+        }
+
+        $('#terminalProtocol').on('change', updateTerminalSshVisibility);
+        // 初期状態反映
+        updateTerminalSshVisibility();
+    });
+    </script>
+
+<script src="pcode1.js"></script>
+
+<script>
+$(document).ready(function() {
+    // ペイントシステムの初期化
+    // 画面全体のサイズを取得
+    const paintWidth = window.innerWidth;
+    const paintHeight = window.innerHeight;
+    
+    console.log("ペイントシステム初期化: width=" + paintWidth + ", height=" + paintHeight);
+    
+    // キャンバスが存在するか確認
+    const mainCanvas = document.querySelector('#paintbody .mainCanvas');
+    const tempCanvas = document.querySelector('#paintbody .tempCanvas');
+    
+    if (!mainCanvas || !tempCanvas) {
+        console.error("キャンバスが見つかりません");
+        return;
+    }
+    
+    // lightPaintクラスのインスタンスを作成
+    if (typeof lightPaint !== 'undefined') {
+        lightPaint.obj[0] = new lightPaint('paintbody', 'paintmenu', paintWidth, paintHeight);
+        console.log("lightPaint.obj[0] = ", lightPaint.obj[0]);
+        
+        // ペイントデータの読み込み（保存されたデータがある場合）
+        if (typeof loadCanvasImage === 'function') {
+            // lightPaintの初期化後に少し待ってから読み込み
+            setTimeout(function() {
+                loadCanvasImage();
+            }, 200);
+        }
+        
+        // メニューの「PAINT ON」チェックボックスにイベントリスナーを追加
+        // 右側メニューとペイントメニュー内の両方のチェックボックスを同期
+        function syncPaintOnState(isChecked) {
+            // 両方のチェックボックスを同期
+            $('#paintOnCheckbox').prop('checked', isChecked);
+            $('#paintmenu .painton').prop('checked', isChecked);
+            
+            if (isChecked) {
+                console.log("PAINT ON チェックされました");
+                // bodyにpaint-onクラスを追加
+                $('body').addClass('paint-on');
+                $('#paintbody').css('pointer-events', 'auto');
+                $('#paintmenu .paintmenubody').show();
+            } else {
+                console.log("PAINT ON チェック外れました");
+                // bodyからpaint-onクラスを削除
+                $('body').removeClass('paint-on');
+                $('#paintbody').css('pointer-events', 'none');
+                $('#paintmenu .paintmenubody').hide();
+            }
+        }
+        
+        // KEEP状態を更新する関数
+        function syncPaintKeepState(isChecked) {
+            // 両方のチェックボックスを同期
+            $('#paintKeepCheckbox').prop('checked', isChecked);
+            $('#paintmenu .paintkeep').prop('checked', isChecked);
+            
+            if (isChecked) {
+                console.log("KEEP チェックされました");
+                $('body').addClass('paint-keep');
+            } else {
+                console.log("KEEP チェック外れました");
+                $('body').removeClass('paint-keep');
+            }
+        }
+        
+        // 右側メニューのPAINT ONチェックボックス
+        $('#paintOnCheckbox').on('change', function() {
+            syncPaintOnState($(this).prop('checked'));
+        });
+        
+        // 右側メニューのKEEPチェックボックス
+        $('#paintKeepCheckbox').on('change', function() {
+            syncPaintKeepState($(this).prop('checked'));
+        });
+        
+        // ペイントメニュー内のPAINT ONチェックボックス（paint_5a.jsで設定されるが、念のため追加）
+        $(document).on('change', '#paintmenu .painton', function() {
+            syncPaintOnState($(this).prop('checked'));
+        });
+        
+        // ペイントメニュー内のKEEPチェックボックス
+        $(document).on('change', '#paintmenu .paintkeep', function() {
+            syncPaintKeepState($(this).prop('checked'));
+        });
+    } else {
+        console.error("lightPaintクラスが読み込まれていません");
+    }
+    
+    // ウィンドウリサイズ時にキャンバスサイズを更新
+    $(window).on('resize', function() {
+        if (lightPaint && lightPaint.obj[0]) {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            
+            // キャンバスサイズを更新
+            lightPaint.obj[0].mainCanvas.width = newWidth;
+            lightPaint.obj[0].mainCanvas.height = newHeight;
+            lightPaint.obj[0].tempCanvas.width = newWidth;
+            lightPaint.obj[0].tempCanvas.height = newHeight;
+        }
+    });
+});
+</script>
+
+<script>
+function get_ketmath_input_raw() {
+
+  return(document.querySelector('iframe').contentWindow.cdy.evalcs('Text2').value.text);
+
+}
+
+function get_ketmath_input() {
+
+  return(get_ketmath_input_raw().split("=")[1]);
+
+}
+
+
+function query_chatgpt(question) {
+
+  if (question.trim() !== "") {
+    const encodedQuestion = encodeURIComponent(question);
+    const url = `https://chatgpt.com/?q=${encodedQuestion}`;
+	window.open(url, '_blank');
+  } else {
+    alert("質問を入力してください。");
+  }
+
+}
+
+        const PROXY_URL = "https://ktky.sakura.ne.jp/file/cindyjs/gemini-cindy-proxy.php";
+        const CINDY_GATEWAY_URL = "https://ktky.sakura.ne.jp/file/cindyjs/cindy_csinit_query.html";
+
+        function extractCindyScript(text) {
+            const block = text.match(/```cindyscript\s*([\s\S]*?)```/i);
+            if (block) return block[1].trim();
+
+            const urlBlock = text.match(/```URL\s*([\s\S]*?)```/i);
+            if (urlBlock) {
+                try {
+                    const u = new URL(urlBlock[1].trim());
+                    const csinit = u.searchParams.get("csinit");
+                    if (csinit) return decodeURIComponent(csinit);
+                } catch (_) {}
+            }
+
+            const scriptMatch = text.match(/((?:[^\n]*create\s*\([\s\S]*?)+allelements\s*\(\s*\))/);
+            if (scriptMatch) return scriptMatch[1].trim();
+
+            return null;
+        }
+
+        function buildResult(cindyScript) {
+            const url = CINDY_GATEWAY_URL + "?csinit=" + encodeURIComponent(cindyScript);
+            const formatted = "```cindyscript\n" + cindyScript + "\n```\n\n```URL\n" + url + "\n```";
+            return { formatted: formatted, url: url };
+        }
+
+        function normalizeResponse(rawText) {
+            const script = extractCindyScript(rawText);
+            if (script) {
+                return buildResult(script);
+            }
+            return {
+                formatted: rawText + "\n\n[警告: CindyScript を抽出できませんでした。上記を確認してください。]",
+                url: null,
+            };
+        }
+
+        function openBlankWindow() {
+            const win = window.open("about:blank", "_blank");
+            if (win) {
+//                win.document.title = "生成中...";
+//                win.document.body.innerHTML = "<p>作図 URL を生成しています...</p>";
+            }
+            return win;
+        }
+
+        function navigateWindow(win, url) {
+            if (win && !win.closed) {
+                win.location.href = url;
+                return true;
+            }
+            return false;
+        }
+
+        function closeWindow(win) {
+            if (win && !win.closed) {
+                win.close();
+            }
+        }
+
+        async function requestGemini(prompt) {
+            const response = await fetch(PROXY_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: prompt }),
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (_) {
+                throw new Error("サーバーからの応答を JSON として読み取れませんでした");
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || ("HTTP " + response.status));
+            }
+
+            return data;
+        }
+
+        async function cindySendPrompt(prompt) {
+//            const outputDiv = document.getElementById("output");
+
+            if (!prompt) {
+//                 outputDiv.textContent = "エラー: メッセージを入力してください。";
+                return;
+            }
+
+//             outputDiv.textContent = "生成中...";
+            const cindyWindow = openBlankWindow();
+            if (!cindyWindow) {
+//                 outputDiv.textContent = "エラー: ポップアップがブロックされました。ブラウザでこのサイトのポップアップを許可してください。";
+                return;
+            }
+
+            try {
+                const apiData = await requestGemini(prompt);
+                let text = apiData.text || "";
+                if (apiData.finishReason === "MAX_TOKENS") {
+                    text += "\n\n[警告: 出力がトークン上限で打ち切られた可能性があります。]";
+                }
+
+                const normalized = normalizeResponse(text);
+                if (normalized.url) {
+                    if (!navigateWindow(cindyWindow, normalized.url)) {
+                        closeWindow(cindyWindow);
+//                         outputDiv.textContent = normalized.formatted + "\n\n[警告: 新しいウィンドウを操作できませんでした。上記 URL を手動で開いてください。]";
+                        return;
+                    }
+//                     outputDiv.textContent = normalized.formatted;
+                    return;
+                }
+
+                closeWindow(cindyWindow);
+//                 outputDiv.textContent = normalized.formatted;
+            } catch (error) {
+                closeWindow(cindyWindow);
+                console.error("エラーが発生しました:", error);
+//                 outputDiv.textContent = "エラーが発生しました:\n" + error.message;
+            }
+        }
+        
+        
+</script>
+
+</body>
+</html>
