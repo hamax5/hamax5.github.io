@@ -2,6 +2,63 @@
         const pdfjsLib = window['pdfjsLib'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.worker.min.js';
 
+        // 教材用 KaTeX（CDN）と CindyJS 専用 KaTeX（canvasBox 付き）を分離する
+        function isCindyKatexLib(k) {
+            return !!(k && typeof k.canvasBox === 'function');
+        }
+        function getPaletteKatex() {
+            if (window.__palettePageKatex && typeof window.__palettePageKatex.render === 'function') {
+                return window.__palettePageKatex;
+            }
+            if (typeof window.__paletteGetPageKatex === 'function') {
+                const k = window.__paletteGetPageKatex();
+                if (k && typeof k.render === 'function') return k;
+            }
+            if (window.katex && typeof window.katex.render === 'function' && !isCindyKatexLib(window.katex)) {
+                window.__palettePageKatex = window.katex;
+                return window.katex;
+            }
+            if (typeof katex !== 'undefined' && katex && typeof katex.render === 'function' && !isCindyKatexLib(katex)) {
+                return katex;
+            }
+            return null;
+        }
+        function restorePaletteKatex() {
+            if (typeof window.__paletteRestorePageKatex === 'function') {
+                window.__paletteRestorePageKatex();
+            } else if (window.__palettePageKatex) {
+                window.katex = window.__palettePageKatex;
+            }
+        }
+        function patchCindyJSKatexIsolation(cj) {
+            if (!cj || cj.__paletteKatexPatched || typeof cj.loadScript !== 'function') return;
+            cj.__paletteKatexPatched = true;
+            const orig = cj.loadScript.bind(cj);
+            cj.loadScript = function(name, path, onSuccess, onError) {
+                const isKatex = String(name) === 'katex' || (path && /katex\//.test(String(path)));
+                if (!isKatex) {
+                    return orig(name, path, onSuccess, onError);
+                }
+                if (window.katex && !isCindyKatexLib(window.katex)) {
+                    window.__palettePageKatex = window.__palettePageKatex || window.katex;
+                    try { delete window.katex; } catch (e) { window.katex = undefined; }
+                }
+                return orig(name, path, function() {
+                    if (isCindyKatexLib(window.katex)) {
+                        window.__cindyKatex = window.katex;
+                    }
+                    if (typeof onSuccess === 'function') {
+                        onSuccess.apply(this, arguments);
+                    }
+                    setTimeout(restorePaletteKatex, 0);
+                }, onError);
+            };
+        }
+        if (typeof CindyJS !== 'undefined') {
+            patchCindyJSKatexIsolation(CindyJS);
+        }
+        restorePaletteKatex();
+
         // コンポーネントクラスのレジストリ
         const componentRegistry = {};
 
@@ -4029,10 +4086,20 @@
 
                     // CindyJSを初期化
                     try {
+                        if (typeof CindyJS !== 'undefined') {
+                            patchCindyJSKatexIsolation(CindyJS);
+                        }
+                        // ページ用 KaTeX が window.katex に残っていると Cindy 専用 KaTeX の読込がスキップされる
+                        if (window.katex && !isCindyKatexLib(window.katex)) {
+                            window.__palettePageKatex = window.__palettePageKatex || window.katex;
+                            try { delete window.katex; } catch (e) { window.katex = undefined; }
+                        }
                         this.cindyInstance = CindyJS(adjustedConfig);
                         console.log('CindyJS initialized successfully for component:', this.id);
+                        setTimeout(restorePaletteKatex, 0);
                     } catch (error) {
                         console.error('Error initializing CindyJS for component:', this.id, error);
+                        restorePaletteKatex();
                     }
                 };
 
@@ -7163,19 +7230,12 @@ sys.stdout = _stdout_capture
                 }
 
                 try {
-                    // KaTeXライブラリの存在確認
-                    if (typeof katex === 'undefined' && typeof window.katex === 'undefined') {
+                    // 教材用 KaTeX（CindyJS専用ビルドではない方）を取得
+                    restorePaletteKatex();
+                    const KaTeXLib = getPaletteKatex();
+                    if (!KaTeXLib || typeof KaTeXLib.render !== 'function') {
                         console.error('KaTeX library is not loaded');
                         displayArea.innerHTML = '<span style="color: red;">エラー: KaTeXライブラリが読み込まれていません</span>';
-                        return;
-                    }
-
-                    // KaTeXオブジェクトの取得
-                    const KaTeXLib = window.katex || katex;
-                    
-                    if (!KaTeXLib || typeof KaTeXLib.render !== 'function') {
-                        console.error('KaTeX.render is not available');
-                        displayArea.innerHTML = '<span style="color: red;">エラー: KaTeXが利用できません</span>';
                         return;
                     }
 
@@ -9160,14 +9220,9 @@ sys.stdout = _stdout_capture
                         return;
                     }
 
-                    // KaTeXライブラリの存在確認
-                    if (typeof katex === 'undefined' && typeof window.katex === 'undefined') {
-                        displayArea.innerHTML = '<span style="color: red;">エラー: KaTeXライブラリが読み込まれていません</span>';
-                        return;
-                    }
-
-                    const KaTeXLib = window.katex || katex;
-                    
+                    // 教材用 KaTeX（CindyJS専用ビルドではない方）を取得
+                    restorePaletteKatex();
+                    const KaTeXLib = getPaletteKatex();
                     if (!KaTeXLib || typeof KaTeXLib.renderToString !== 'function') {
                         displayArea.innerHTML = '<span style="color: red;">エラー: KaTeXが利用できません</span>';
                         return;
@@ -12481,6 +12536,7 @@ sys.stdout = _stdout_capture
             let htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
             
             // カラーピッカー関連のタグを削除（保存前に）
+            // あわせて CindyJS が動的注入した KaTeX/WebFont 残骸も除去（リロード時の競合防止）
             const removeColorPicker = () => {
                 try {
                     const parser = new DOMParser();
@@ -12491,6 +12547,37 @@ sys.stdout = _stdout_capture
                             picker.parentNode.removeChild(picker);
                         }
                     });
+
+                    // WebFont が付与したクラスを保存しない（リロード時のフォント判定を誤らせる）
+                    const htmlEl = doc.documentElement;
+                    if (htmlEl && htmlEl.classList) {
+                        Array.from(htmlEl.classList).forEach(cls => {
+                            if (cls === 'wf-active' || cls.indexOf('wf-') === 0) {
+                                htmlEl.classList.remove(cls);
+                            }
+                        });
+                    }
+
+                    // CindyJS が動的に挿入した webfont / katex-plugin / 独自 katex を除去
+                    // （次回ロード時に use:["katex"] で再読み込みされる）
+                    doc.querySelectorAll('script[src]').forEach(script => {
+                        const src = script.getAttribute('src') || '';
+                        if (/webfont\.js(?:\?|$)/.test(src) ||
+                            /katex-plugin\.js(?:\?|$)/.test(src) ||
+                            /katex\/katex\.min\.js(?:\?|$)/.test(src)) {
+                            script.remove();
+                        }
+                    });
+
+                    // CindyJS 由来の KaTeX CSS（CDN の katex@x.y.z は残す）
+                    doc.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                        const href = link.getAttribute('href') || '';
+                        if (/\/katex\/katex\.min\.css(?:\?|$)/.test(href) ||
+                            (/cindyjs\.org/i.test(href) && /katex/i.test(href))) {
+                            link.remove();
+                        }
+                    });
+
                     // DOCTYPEを保持してHTMLを再構築
                     htmlContent = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
                 } catch (e) {
