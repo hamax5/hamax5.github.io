@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    
+    <title>fig20260831.cdy</title>
+    <style type="text/css">
+        * {
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        #CSConsole {
+            background-color: #FAFAFA;
+            border-top: 1px solid #333333;
+            bottom: 0px;
+            height: 200px;
+            overflow-y: scroll;
+            position: fixed;
+            width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cindyjs.org/dist/v0.8/CindyJS.css">
+    <script type="text/javascript" src="https://cindyjs.org/dist/v0.8/Cindy.js"></script>
+    <script type="text/javascript" src="https://cindyjs.org/dist/v0.8/KetCindyPlugin.js"></script>
+<script id="csinit" type="text/x-cindyscript">
+//KETlib
+use("KetCindyPlugin");
+Dircdy=loaddirectory;
+setdirectory(gethome());
+import("ketcindy.ini");
+
+;
+//Script (CindyScript)
+sgn=-1;
+;
+
+</script>
+<script id="cskeytyped" type="text/x-cindyscript">
+//Script (CindyScript)
+if(key()=="?" % keydownlist()==[32],
+  if(!isreal(NumTyped),NumTyped=0);
+  if(NumTyped==0,
+    DispStr=
+     "Figure(1) Parent(2) Parapara(3) Movie(4) Surf(5)";
+  );
+  if(NumTyped==1,
+    DispStr=
+     "Shift+ Title(T) Para(P) Slide(S) Digest(D)";
+  );
+  if(NumTyped==2,
+    DispStr="Shift+ Meshlab(M)";
+  );
+  if(NumTyped==3,
+    DispStr=
+     "Ch : disp(0) chg(9) N(+,-) add(<) rmv(>)";
+  );
+  drawtext(mouse().xy,DispStr,size->24);
+  NumTyped=mod(NumTyped+1,4);
+,
+  NumTyped=0;  
+);
+if(key()=="1",//Mkfigure
+  Viewtex();
+  kc();
+);
+if(key()=="2",//Mkparent
+  Viewparent();
+);
+if(key()=="3",//Flipbook(Parapara)
+  Flipbook();
+);
+if(key()=="4",//Texmovie
+  Texmovie();
+  kc();
+);
+if(key()=="5",//Surface
+  Cheader();
+  Cmain();
+  kcC();
+  if(ChNum>0,
+    Ch=[ChNum];
+  ,
+    Ch=[1];
+  );
+  ChNum=0;
+);
+if(key()=="T",//Title
+  Maketitle();
+);
+if(key()=="P",//ParaF
+  Parafolder();
+);
+if(key()=="S",//Slide 
+  Mkslides();
+);
+if(key()=="D",//Digest(Summary)
+  Mkslidesummary();
+);
+if(key()=="M",//Meshlab
+  Mkviewobj(OCNAME,OBJCMD,OCOPTION);
+);
+
+if(key()=="0",
+  Dispchoice();
+);
+if(key()=="9",
+  if(length(Ch)==0,
+    Ch=[ChNum];
+  ,
+    if(!contains(Ch,ChNum),
+      Ch=append(Ch,ChNum);
+      ChNum=Ch_(length(Ch)-1);
+      Ch=remove(Ch,[ChNum]);
+      Ch=sort(Ch);
+    );
+  );
+  Dispchoice();
+);
+if(key()=="+",
+  ChNum=ChNum+1;
+  Dispchoice();
+);
+if(key()=="-",
+  ChNum=ChNum-1;
+  Dispchoice();
+);
+if(key()=="<",
+  if(length(select(Ch,#==ChNum))==0,
+    Ch=append(Ch,ChNum);
+    Ch=sort(Ch);
+    ChNum=ChNum+1;
+  );
+  Dispchoice();
+);
+if(key()=="^",
+  if(length(Ch)==0,
+    Ch=[ChNum];
+  ,
+    if(!contains(Ch,ChNum),
+      Ch=Ch_(1..(length(Ch)-1));
+      Ch=append(Ch,ChNum);
+      Ch=sort(Ch);
+    );
+  );
+  ChNum=ChNum+1;
+  Dispchoice();
+);
+if(key()=="~",
+  if(length(Ch)==0,
+    Ch=[ChNum];
+  ,
+    if(!contains(Ch,ChNum),
+      Ch=Ch_(1..(length(Ch)-1));
+      Ch=append(Ch,ChNum);
+      Ch=sort(Ch);
+    );
+  );
+  ChNum=max(ChNum-1,1);
+  Dispchoice();
+);
+if(key()==">",
+  if(length(Ch)>0,
+    ChNum=Ch_(length(Ch));
+    Ch=Remove(Ch,[ChNum]);
+  );
+  Dispchoice();
+);
+
+;
+
+</script>
+<script id="csdraw" type="text/x-cindyscript">
+//figures
+Ketinit();
+Setketcindyjs(["Label=[]","Color=offwhite"]);//no ketjs
+//Slider("S",[0,-15],[6,-15],"Thick=1");
+//Slider("T",[0,-16],[6,-16],"Thick=1");
+Setax([7,"s1e1"]);
+
+
+f1(x):=x^3-3*x+2;
+//Plotdata("1","f1(x)","x=[-5,5]",["dr,3","Color=red","Num=200"]);
+
+A1=[A.x,A.y+5];B1=[B.x,B.y+5];Pointdata("1",B1,["Size=3"]);
+C1=[C.x,C.y+5];Pointdata("2",C1,["Size=3"]);
+D1=[D.x,D.y+5];E1=[E.x,E.y+5];Pointdata("3",D1,["Size=3"]);
+Putpoint("F",[B.x-1,B.y],[F.x,B.y]);
+Putpoint("G",[B.x+1,B.y],[G.x,B.y]);
+F1=[F.x,F.y+5];G1=[G.x,G.y+5];
+Putpoint("H",[D.x-1,D.y],[H.x,D.y]);
+Putpoint("K",[D.x+1,D.y],[K.x,D.y]);
+H1=[H.x,H.y+5];K1=[K.x,K.y+5];
+//Pointdata("1m",B+[0,5]);
+//F1=pt1m.xy;
+
+Bezier("1",[A1,B1,C1,D1,E1],[F1,G1,H1,K1],["Num=100","dr,2","Color=blue"]);
+
+
+if(sgn==1,
+  Plotdata("1","f1(x)","x=[-5,5]",["dr,3","Color=blue","Num=200"]);
+);
+
+
+Windispg();
+
+Help("Putpoint");
+;
+
+</script>
+    <script type="text/javascript">
+var cdy = CindyJS({
+  scripts: "cs*",
+  defaultAppearance: {
+    dimDependent: 0.7,
+    fontFamily: "sans-serif",
+    lineSize: 1,
+    pointSize: 5.0,
+    textsize: 12.0
+  },
+  angleUnit: "°",
+  geometry: [
+    {name: "SW", type: "Free", pos: [4.0, 3.563220151123491, -0.546763644556752], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "NE", type: "Free", pos: [4.0, 3.3112722465875355, 0.5541838101797124], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "T", type: "Free", pos: [0.0, -4.0, 0.25], color: [1.0, 0.0, 0.0], labeled: true, size: 10.0},
+    {name: "S", type: "Free", pos: [0.5313726927557333, -4.0, 0.26666666666666666], color: [0.0, 0.0, 1.0], labeled: true, size: 10.0},
+    {name: "Text33", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [1.0, 0.286, 0.286], fillalpha: 0.27272728085517883, script: "Viewtex();\nkc();", text: "Figure", textsize: 18.0, dock: {corner: "UL", offset: [10.0, -20.0]}},
+    {name: "Text134", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [1.0, 1.0, 0.0], fillalpha: 0.27272728085517883, script: "if(length(Shellparent)>0,\n  Makeshell(),Makebat();\n);\nif(indexof(Libname,\"sci\")>0,\n  writetosci(2),writetoRS(2)\n);\nkc();", text: "Parent", textsize: 18.0, dock: {corner: "UL", offset: [77.0, -20.0]}},
+    {name: "Text3", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [1.0, 0.929, 0.6], fillalpha: 0.27272728085517883, script: "Parafolder();", text: "ParaF", textsize: 18.0, dock: {corner: "UL", offset: [299.0, -20.0]}},
+    {name: "Text4", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [0.51, 0.949, 1.0], fillalpha: 0.27272728085517883, script: "Mkanimation();", text: "Anime", textsize: 18.0, dock: {corner: "UL", offset: [359.0, -20.0]}},
+    {name: "Text5", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [0.0, 0.0, 1.0], fillalpha: 0.27272728085517883, script: "Mkflipanime();", text: "Flip", textsize: 18.0, dock: {corner: "UL", offset: [427.0, -20.0]}},
+    {name: "Text21", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [0.0, 1.0, 1.0], fillalpha: 0.5726495726495726, script: "Mkketcindyjs(append(KETJSOP,\"Web=y\"));", text: "Ketjson", textsize: 18.0, dock: {corner: "UL", offset: [144.0, -20.0]}},
+    {name: "Text22", type: "Button", color: [0.0, 0.0, 0.0], fillcolor: [0.0, 1.0, 1.0], fillalpha: 0.4358974358974359, script: "Mkketcindyjs(append(KETJSOP,\"Web=n\"));", text: "Ketjsoff", textsize: 18.0, dock: {corner: "UL", offset: [218.0, -20.0]}},
+    {name: "A", type: "Free", pos: [-2.6666666666666665, -4.0, 1.3333333333333333], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "B", type: "Free", pos: [-2.0, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "C", type: "Free", pos: [0.0, -4.0, 1.3333333333333333], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "D", type: "Free", pos: [1.0, -4.0, 1.0], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "E", type: "Free", pos: [2.6666666666666665, -4.0, 1.3333333333333333], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "F", type: "Free", pos: [-3.207427804202, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "G", type: "Free", pos: [-0.891211236326, -4.0, 2.0], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "H", type: "Free", pos: [0.547058625212, -4.0, 1.0], color: [1.0, 0.0, 0.0], labeled: true},
+    {name: "K", type: "Free", pos: [1.516088005649, -4.0, 1.0], color: [1.0, 0.0, 0.0], labeled: true}
+  ],
+  ports: [{
+    width: 442,
+    height: 380,
+    id: "CSCanvas",
+    transform: [{visibleRect: [-5.397109403570572, 4.565408711088855, 5.049500014806298, -4.415839205162753]}],
+    grid: 1.0,
+    snap: true,
+    background: "rgb(168,176,192)"
+  }],
+  csconsole: false,
+  cinderella: {build: 2136, version: [3, 0, 2136]}
+});
+    </script>
+</head>
+<body>
+    <div id="CSCanvas"></div>
+</body>
+</html>
