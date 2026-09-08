@@ -1,0 +1,3350 @@
+<!DOCTYPE html>
+<html lang="ja" class="smartphone-layout smartphone-menu-open smartphone-edit" style="--sm-scale: 0.6489675516224189;"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>動的コンポーネントシステム with PDF.js</title>
+    <!-- jQueryとjQuery UIを読み込む -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    
+    <!-- PDF.js をCDNから読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
+    
+    <!-- Algebrite を指定URLから読み込む -->
+    <script src="https://ktky.sakura.ne.jp/lib/algebrite/algebrite.bundle-for-browser.js"></script>
+    
+    <!-- Nerdamer をCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.min.js"></script>
+    
+    <!-- KaTeX をCDNから読み込む（教材用。CindyJS専用KaTeXとは分離する） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+        // CindyJS の katex-plugin は canvasBox 付きの独自 KaTeX を要求する。
+        // CDN KaTeX が window.katex に残っていると Cindy 側が読み込みをスキップして壊れるため退避する。
+        window.__palettePageKatex = window.katex;
+        try { delete window.katex; } catch (e) { window.katex = undefined; }
+        window.__paletteRestorePageKatex = function () {
+            if (window.__palettePageKatex) {
+                window.katex = window.__palettePageKatex;
+            }
+        };
+        window.__paletteGetPageKatex = function () {
+            return window.__palettePageKatex || (window.katex && !window.katex.canvasBox ? window.katex : null);
+        };
+        (function () {
+            function isCindyKatex(k) {
+                return !!(k && typeof k.canvasBox === 'function');
+            }
+            function patchCindyJS(cj) {
+                if (!cj || cj.__paletteKatexPatched || typeof cj.loadScript !== 'function') return;
+                cj.__paletteKatexPatched = true;
+                var orig = cj.loadScript.bind(cj);
+                cj.loadScript = function (name, path, onSuccess, onError) {
+                    var isKatex = String(name) === 'katex' || (path && /katex\//.test(String(path)));
+                    if (!isKatex) {
+                        return orig(name, path, onSuccess, onError);
+                    }
+                    if (window.katex && !isCindyKatex(window.katex)) {
+                        window.__palettePageKatex = window.__palettePageKatex || window.katex;
+                        try { delete window.katex; } catch (e) { window.katex = undefined; }
+                    }
+                    return orig(name, path, function () {
+                        if (isCindyKatex(window.katex)) {
+                            window.__cindyKatex = window.katex;
+                        }
+                        if (typeof onSuccess === 'function') {
+                            onSuccess.apply(this, arguments);
+                        }
+                        setTimeout(function () {
+                            if (typeof window.__paletteRestorePageKatex === 'function') {
+                                window.__paletteRestorePageKatex();
+                            }
+                        }, 0);
+                    }, onError);
+                };
+            }
+            var currentCindy = window.CindyJS;
+            try {
+                Object.defineProperty(window, 'CindyJS', {
+                    configurable: true,
+                    enumerable: true,
+                    get: function () { return currentCindy; },
+                    set: function (v) {
+                        currentCindy = v;
+                        patchCindyJS(v);
+                    }
+                });
+            } catch (e) {
+                console.warn('CindyJS KaTeX isolation hook failed:', e);
+            }
+            if (currentCindy) patchCindyJS(currentCindy);
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    
+    <!-- marked.js をCDNから読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    
+    <!-- spectrum.js（カラーピッカーライブラリ）の読み込み -->
+    <script src="https://ktky.sakura.ne.jp/lib/palette/spectrum.js"></script>
+    <link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/palette/spectrum.css">
+    
+    <!-- お絵描き機能本体を定義しているJSファイル -->
+    <script src="paint_5a.js"></script>
+    
+    <!-- CindyJS を読み込む -->
+    <link rel="stylesheet" href="https://cindyjs.org/dist/v0.8/CindyJS.css">
+    <script type="text/javascript" src="https://cindyjs.org/dist/v0.8/Cindy.js"></script>
+
+   <!--  KetCindyjs を読み込む -->
+    <link rel="stylesheet" href="ketcindyjs/CindyJS.css">
+   <script type="text/javascript" src="ketcindyjs/Cindy.js"></script>
+    <script>
+        // ketcindyjs 上書き後もページ用 KaTeX を戻す
+        if (typeof window.__paletteRestorePageKatex === 'function') {
+            window.__paletteRestorePageKatex();
+        }
+    </script>
+    
+    <!-- Pyodide を読み込む（Python実行用） -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    
+    <!-- jspreadsheet CE を読み込む -->
+    <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css">
+    <link rel="stylesheet" href="https://bossanova.uk/jspreadsheet/v4/jexcel.css" type="text/css">
+    <script src="https://jsuites.net/v4/jsuites.js"></script>
+    <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
+    
+    <!-- SheetJS (xlsx) を読み込む -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Apache ECharts を読み込む -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+    <!-- Xterm.js を読み込む -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css">
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    
+    <style>
+        /* メニューのスタイル */
+        #rightMenu {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #f0f0f0;
+            border-left: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            z-index: 2000; /* コンポーネントより上に表示 */
+        }
+
+        /* メニュータイトルのスタイル */
+        .menu_title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: grab; /* ドラッグ可能 */
+            background-color: #e0e0e0; /* 薄い灰色 */
+            padding: 1px 4px; /* パディングをさらに減らす */
+            border-radius: 4px;
+            font-size: 12px; /* フォントサイズを少し小さく */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .menu_title:active {
+            cursor: grabbing;
+        }
+
+        .menu_drag_grip {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 6px;
+            color: #666;
+            font-size: 14px;
+            letter-spacing: -1px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        /* メニューセクションのスタイル */
+        .menu_section {
+            margin-bottom: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        /* メニューセクションヘッダーのスタイル */
+        .menu_section_header {
+            padding: 4px 6px;
+            background-color: #e8e8e8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .menu_section_header:hover {
+            background-color: #d0d0d0;
+        }
+
+        .menu_toggle_icon {
+            display: inline-block;
+            width: 12px;
+            text-align: center;
+            font-size: 10px;
+            margin-right: 4px;
+            transition: transform 0.2s;
+        }
+
+        .menu_section_header.collapsed .menu_toggle_icon {
+            transform: rotate(-90deg);
+        }
+
+        .menu_section_title {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* メニューセクションコンテンツのスタイル */
+        .menu_section_content {
+            padding: 4px;
+            display: block;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out, opacity 0.2s ease-out;
+        }
+
+        .menu_section_content.collapsed {
+            max-height: 0 !important;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+        }
+
+        /* メニューアイテムのスタイル */
+        .menu_item {
+            padding: 6px;
+            margin-bottom: 4px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .menu_item:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* 隠すクラス */
+        .hidden {
+            display: none;
+        }
+
+        /* コンポーネントの共通スタイル */
+        .palette-container {
+            position: absolute;
+            background-color: transparent; /* 背景を透明に変更 */
+            box-sizing: border-box;
+            border: none;
+            border-radius: 4px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: none; /* 影も削除して完全に透明に */
+            overflow: visible;
+        }
+
+        /* PDFコンポーネント用のz-index設定 */
+        .palette-container[data-component-type="pdf"] {
+            z-index: 500;
+        }
+
+        /* テキストエリア、テキストボックス、ボタンコンポーネント用のz-index設定 */
+        .palette-container[data-component-type="textarea"],
+        .palette-container[data-component-type="textbox"],
+        .palette-container[data-component-type="button"] {
+            z-index: 1000;
+        }
+
+        /* パレットトップ（タイトルバー）のスタイル */
+        .palette-top {
+            cursor: move;
+            background-color: #f0f0f0;
+            padding: 1px 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            height: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .palette-top .title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+            white-space: nowrap;
+            overflow: visible;
+            flex-grow: 1;
+            margin-right: 8px;
+        }
+
+        .palette-top .buttons {
+            display: flex;
+            gap: 1px;
+        }
+
+        .palette-top .buttons .iframe-zoom-slider {
+            width: 40px;
+            height: 16px;
+            padding: 0;
+            margin-right: 2px;
+        }
+
+        /* iframeコンポーネントではbodyのpaddingを除去し、中身をコンテナ端まで表示 */
+        .palette-container[data-component-type="iframe"] .palette-body {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .palette-container[data-component-type="iframe"] .palette-body iframe {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-top .buttons button {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            cursor: pointer;
+            border: none;
+            background-color: #6699ff;
+            font-size: 16px;
+            line-height: 1;
+            color: #fff;
+            border-radius: 2px;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .palette-top .buttons button:hover {
+            background-color: #6699ff;
+            transform: scale(1.1);
+        }
+
+        /* 操作ボタンに特定の色を割り当て */
+        .palette-top .buttons .user-mode-toggle-button {
+            background-color: #ffaa00;
+        }
+
+        .palette-top .buttons .toggle-button {
+            background-color: #6699ff;
+        }
+
+        .palette-top .buttons .execute-button {
+            background-color: #66ff66;
+        }
+
+        .palette-top .buttons .delete-button {
+            background-color: #ff6666;
+        }
+
+        /* パレットボディのスタイル */
+        .palette-body {
+            flex-grow: 1;
+            flex-shrink: 1;
+            flex-basis: 0;
+            min-height: 0;
+            width: 100%;
+            position: relative;
+            padding: 8px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: stretch;
+            background-color: transparent; /* 背景を透明に変更 */
+        }
+
+        /* PDF表示コンテナのスタイル */
+        .palette-pdf {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* PDFコントロールのスタイル */
+        .palette-pdf .pdf-controls {
+            flex-shrink: 0;
+        }
+
+        /* PDFキャンバスコンテナのスタイル */
+        .palette-pdf .pdf-canvas-container {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+
+        /* PDF表示用canvasのスタイル */
+        .palette-pdf canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* サイズ調整ハンドルのスタイル */
+        .ui-resizable-handle {
+            z-index: 1001; /* コンポーネント内の要素より前面に表示 */
+            /* リサイズハンドルがキャンバスと干渉しないようにする */
+            pointer-events: auto;
+        }
+
+        .ui-resizable-se {
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            background: #6699ff;
+            border: 2px solid #fff;
+            box-sizing: border-box;
+            cursor: se-resize;
+            position: absolute;
+        }
+        
+        /* リサイズ中にキャンバスを保護 */
+        .ui-resizable-resizing ~ #paintbody,
+        .ui-resizable-resizing #paintbody {
+            pointer-events: none !important;
+        }
+        
+        /* リサイズハンドルがキャンバスと干渉しないようにする */
+        .ui-resizable-handle {
+            pointer-events: auto !important;
+        }
+
+        /* エラーメッセージのスタイル */
+        .error-message {
+            display: none;
+            color: red;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+        /* 各コンポーネント固有のスタイル */
+        .palette-textarea textarea,
+        .palette-textbox input[type="text"],
+        .palette-button input[type="button"] {
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        /* ユーザーモード時に非表示にするスタイル */
+        body.user-mode .palette-top {
+            visibility: hidden;
+            height: 20px;
+        }
+        
+        body.user-mode .ui-resizable-handle {
+            display: none;
+        }
+
+        body.user-mode .palette-container {
+            box-shadow: none;
+        }
+
+        /* 強制的に .ui-dialog の z-index を高く設定 */
+        .ui-dialog {
+            z-index: 3000 !important;
+        }
+
+        /* モード切り替えボタンのスタイル */
+        #modeButton {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 2000; /* コンポーネントより上に表示 */
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #6699ff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #modeButton:hover {
+            background-color: #5588ee;
+        }
+
+        /* メニュー設定入力欄のスタイル */
+        .menu_config {
+            width: 90%;
+            margin: 4px auto 8px;
+            padding: 4px;
+            display: block;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .palette-figure {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .palette-figure img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border: none;
+        }
+
+        .palette-container[data-component-type="figure"] {
+            z-index: 500;
+        }
+
+        /* プルダウンメニュー用のスタイル */
+        .palette-dropdown select {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-container[data-component-type="dropdown"] {
+            z-index: 1000;
+        }
+
+        /* Algebrite端末コンポーネント用のスタイル */
+        .palette-algebrite {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-algebrite textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-algebrite button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-algebrite button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="algebrite"] {
+            z-index: 1000;
+        }
+
+        /* Nerdamer端末コンポーネント用のスタイル */
+        .palette-nerdamer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-nerdamer textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-nerdamer button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-nerdamer button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="nerdamer"] {
+            z-index: 1000;
+        }
+
+        /* Python端末コンポーネント用のスタイル */
+        .palette-python {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-python .python-output-area {
+            flex: 1;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 150px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .palette-python .python-output-line {
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .palette-python .python-input-line {
+            color: #4ec9b0;
+        }
+
+        .palette-python .python-result-line {
+            color: #d4d4d4;
+        }
+
+        .palette-python .python-error-line {
+            color: #f48771;
+        }
+
+        .palette-python .python-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .palette-python .python-input {
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .palette-python .python-execute-button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-python .python-execute-button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-container[data-component-type="python"] {
+            z-index: 1000;
+        }
+
+        /* TeXコンポーネント用のスタイル */
+        .palette-tex {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-tex .tex-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-tex textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-tex button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-tex button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-tex .tex-display-area {
+            flex: 1;
+            min-height: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-tex .tex-input-area {
+            display: none;
+        }
+
+        body.user-mode .palette-tex .tex-display-area {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="tex"] {
+            z-index: 1000;
+        }
+
+        /* TeX数式表示コンポーネント用のスタイル */
+        .palette-tex-display {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-tex-display .tex-display-area {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        .palette-container[data-component-type="tex-display"] {
+            z-index: 1000;
+        }
+
+        /* Markdownコンポーネント用のスタイル */
+        .palette-markdown {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-markdown .markdown-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-markdown textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-markdown button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-markdown button:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-markdown .markdown-display-area {
+            flex: 1;
+            min-height: 100px;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-markdown .markdown-input-area {
+            display: none;
+        }
+
+        body.user-mode .palette-markdown .markdown-display-area {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="markdown"] {
+            z-index: 1000;
+        }
+
+        /* LLMコンポーネント用のスタイル */
+        .palette-llm {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            gap: 4px;
+        }
+
+        .palette-llm .llm-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .palette-llm textarea {
+            flex: 1;
+            box-sizing: border-box;
+            resize: none;
+            width: 100%;
+            min-height: 60px;
+            font-size: 12px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-llm button {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .palette-llm button:hover {
+            background-color: #5588ee;
+        }
+
+        /* ユーザーモードでは、data-user-mode-visibleが'E'の場合のみテキストエリアとボタンを非表示 */
+        body.user-mode .palette-container[data-user-mode-visible="E"] .palette-llm .llm-input-area {
+            display: none;
+        }
+
+        .palette-container[data-component-type="llm"] {
+            z-index: 1000;
+        }
+
+        /* Markdown表示コンポーネント用のスタイル */
+        .palette-markdown-display {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-markdown-display .markdown-display-area {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            overflow: auto;
+            box-sizing: border-box;
+        }
+
+        .palette-container[data-component-type="markdown-display"] {
+            z-index: 1000;
+        }
+
+        /* Cinderellaコンポーネント用のスタイル */
+        .palette-cinderella {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .palette-cinderella > div {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="cinderella"] {
+            z-index: 500;
+            overflow: hidden;
+        }
+
+        .palette-container[data-component-type="cinderella"] .ui-resizable-se {
+            z-index: 10000;
+            -webkit-transform: translate3d(0, 0, 1px);
+            transform: translate3d(0, 0, 1px);
+        }
+
+        html.smartphone-layout .palette-container[data-component-type="cinderella"] .palette-cinderella,
+        html.smartphone-layout .palette-container[data-component-type="cinderella"] .CindyJS-widget,
+        html.smartphone-layout .palette-container[data-component-type="cinderella"] canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100%;
+            max-height: 100%;
+            box-sizing: border-box;
+        }
+
+        /* 表計算コンポーネント用のスタイル */
+        .palette-spreadsheet {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 4px;
+        }
+
+        .palette-spreadsheet .spreadsheet-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 4px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .palette-spreadsheet .spreadsheet-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #6699ff;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .palette-spreadsheet .spreadsheet-btn:hover {
+            background-color: #5588ee;
+        }
+
+        .palette-spreadsheet .spreadsheet-area {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow: auto;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            background-color: #fff;
+        }
+
+        .palette-container[data-component-type="spreadsheet"] {
+            z-index: 1000;
+        }
+
+        /* EChartsコンポーネント用のスタイル */
+        .palette-echart {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .palette-echart .echart-container {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .palette-container[data-component-type="echart"] {
+            z-index: 1000;
+        }
+
+        /* Terminalコンポーネント用のスタイル */
+        .palette-terminal {
+            width: 100%;
+            height: 100%;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .palette-terminal .xterm-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .palette-container[data-component-type="terminal"] {
+            z-index: 1000;
+        }
+
+        /* ペイントシステム用のスタイル */
+        #paintbody {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1; /* デフォルトではコンポーネントの下に配置（背景レイヤー） */
+        }
+        
+        /* PAINT ONがチェックされているとき、ペイントキャンバスを最前面に配置 */
+        body.paint-on #paintbody {
+            z-index: 2000; /* コンポーネントより上に配置 */
+        }
+        
+        /* KEEPがチェックされているとき、ペイントキャンバスを最前面に配置（PAINT ONがオフでも） */
+        body.paint-keep #paintbody {
+            z-index: 2000; /* コンポーネントより上に配置 */
+        }
+        
+        /* PAINT ONがチェックされているとき、コンポーネントのpointer-eventsを無効化してペイントを通す */
+        body.paint-on .palette-container {
+            pointer-events: none;
+        }
+        
+        /* PAINT ONがチェックされているときでも、コンポーネントのタイトルバーは操作可能 */
+        body.paint-on .palette-top {
+            pointer-events: auto;
+        }
+        
+        /* PAINT ONがチェックされているときでも、リサイズハンドルは操作可能 */
+        body.paint-on .ui-resizable-handle {
+            pointer-events: auto;
+        }
+        
+        /* PAINT ONがチェックされているとき、コンポーネント内の入力要素もペイントを通す */
+        /* ただし、入力要素を操作したい場合は、PAINT ONをオフにする必要がある */
+        body.paint-on .palette-container textarea,
+        body.paint-on .palette-container input,
+        body.paint-on .palette-container select,
+        body.paint-on .palette-container button,
+        body.paint-on .palette-container iframe {
+            pointer-events: none;
+        }
+        
+        /* ただし、コンポーネントのタイトルバーのボタンは操作可能 */
+        body.paint-on .palette-top .buttons button {
+            pointer-events: auto;
+        }
+
+        #paintbody .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #paintbody .mainCanvas,
+        #paintbody .tempCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            border: none;
+        }
+
+        #paintmenu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2500;
+            pointer-events: auto;
+        }
+
+        .paint-menu-container {
+            position: relative;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            min-width: 200px;
+        }
+        
+        .paint-menu-titlebar {
+            background: #4a90e2;
+            color: white;
+            padding: 5px 10px;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .paint-menu-content {
+            padding: 10px;
+        }
+
+        /* ファイル転送コンポーネント用のスタイル */
+        .palette-filetransfer {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            font-family: 'Segoe UI', 'Meiryo', sans-serif;
+            font-size: 13px;
+            overflow: hidden;
+        }
+
+        .palette-filetransfer .ft-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        .palette-filetransfer .ft-toolbar button {
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid #bbb;
+            border-radius: 3px;
+            background: #e8e8e8;
+            cursor: pointer;
+        }
+
+        .palette-filetransfer .ft-toolbar button:hover {
+            background: #d0d0d0;
+        }
+
+        .palette-filetransfer .ft-path-bar {
+            flex: 1;
+            padding: 2px 6px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .palette-filetransfer .ft-path-bar span {
+            cursor: pointer;
+            color: #0066cc;
+        }
+
+        .palette-filetransfer .ft-path-bar span:hover {
+            text-decoration: underline;
+        }
+
+        .palette-filetransfer .ft-path-bar .ft-path-sep {
+            color: #888;
+            cursor: default;
+            margin: 0 2px;
+        }
+
+        .palette-filetransfer .ft-status {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #666;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        .palette-filetransfer .ft-file-list {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+
+        .palette-filetransfer .ft-header {
+            display: flex;
+            padding: 4px 8px;
+            background: #e8e8e8;
+            border-bottom: 1px solid #ccc;
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            user-select: none;
+        }
+
+        .palette-filetransfer .ft-header-name {
+            flex: 1;
+        }
+
+        .palette-filetransfer .ft-header-size {
+            width: 80px;
+            text-align: right;
+        }
+
+        .palette-filetransfer .ft-header-date {
+            width: 130px;
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .palette-filetransfer .ft-item {
+            display: flex;
+            align-items: center;
+            padding: 3px 8px;
+            cursor: default;
+            user-select: none;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .palette-filetransfer .ft-item:hover {
+            background-color: #e8f0fe;
+        }
+
+        .palette-filetransfer .ft-item.selected {
+            background-color: #cce5ff;
+        }
+
+        .palette-filetransfer .ft-item-icon {
+            width: 20px;
+            font-size: 14px;
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .palette-filetransfer .ft-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-left: 4px;
+        }
+
+        .palette-filetransfer .ft-item-name.ft-is-dir {
+            font-weight: 500;
+        }
+
+        .palette-filetransfer .ft-item-size {
+            width: 80px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+        }
+
+        .palette-filetransfer .ft-item-date {
+            width: 130px;
+            text-align: right;
+            color: #888;
+            font-size: 11px;
+            padding-right: 8px;
+        }
+
+        .palette-filetransfer .ft-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        .ft-context-menu {
+            position: fixed;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            min-width: 140px;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+
+        .ft-context-menu .ft-ctx-item {
+            padding: 6px 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .ft-context-menu .ft-ctx-item:hover {
+            background-color: #e8f0fe;
+        }
+
+        .palette-container[data-component-type="filetransfer"] {
+            z-index: 1000;
+        }
+
+        /* 音声文字変換コンポーネント用のスタイル */
+        .palette-container[data-component-type="speech"] {
+            z-index: 1000;
+        }
+
+        .palette-top .buttons .speech-record-btn {
+            background-color: #4caf50;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-record-btn.recording {
+            background-color: #f44336;
+            animation: speech-pulse 1s infinite;
+        }
+
+        @keyframes speech-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .palette-top .buttons .speech-stop-btn {
+            background-color: #757575;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-copy-btn {
+            background-color: #2196f3;
+            font-size: 12px;
+        }
+
+        .palette-top .buttons .speech-clear-btn {
+            background-color: #ff9800;
+            font-size: 12px;
+        }
+
+        /* ユーザーモードでも音声文字変換コンポーネントのタイトルバーを表示 */
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top {
+            visibility: visible;
+        }
+
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .title,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .user-mode-toggle-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .toggle-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .execute-button,
+        body.user-mode .palette-container[data-component-type="speech"] .palette-top .delete-button {
+            display: none;
+        }
+
+        /* スマホ: 教材 iframe を画面に合わせ、テキストボックス等はその前面に重ねる */
+        html.smartphone-layout,
+        html.smartphone-layout body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            background: rgb(247, 247, 247) !important;
+        }
+
+        html.smartphone-layout body {
+            position: fixed !important;
+            inset: 0 !important;
+        }
+
+        html.smartphone-layout #paintbody,
+        html.smartphone-layout #paintmenu {
+            display: none !important;
+        }
+
+        html.smartphone-layout #modeButton {
+            display: block !important;
+            position: fixed !important;
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 10001 !important;
+        }
+
+        html.smartphone-layout .ui-dialog {
+            z-index: 10002 !important;
+            max-width: calc(100vw - 24px) !important;
+            width: min(360px, calc(100vw - 24px)) !important;
+            left: 12px !important;
+        }
+
+        html.smartphone-layout #if1 {
+            position: absolute !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: rgb(247, 247, 247) !important;
+            overflow: hidden !important;
+            z-index: 1 !important;
+        }
+
+        html.smartphone-layout #if1 iframe {
+            position: relative !important;
+            z-index: 0 !important;
+        }
+
+        html.smartphone-layout #if1 .palette-top,
+        html.smartphone-layout #if1 .ui-resizable-handle {
+            display: none !important;
+            height: 0 !important;
+            visibility: hidden !important;
+        }
+
+        html.smartphone-layout #if1 .palette-body {
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: rgb(247, 247, 247) !important;
+        }
+
+        /* iOS では iframe が前面に描画されやすいので、部品側に合成レイヤを作る */
+        html.smartphone-layout .palette-container:not(#if1) {
+            z-index: 100 !important;
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+            isolation: isolate;
+            pointer-events: auto !important;
+        }
+
+        html.smartphone-layout.smartphone-user #rightMenu,
+        html.smartphone-layout.smartphone-user #smartphoneMenuToggle {
+            display: none !important;
+        }
+
+        /* スマホ編集: メニューは全高固定せず、タイトルバーで移動できるフローティングパネルにする */
+        html.smartphone-layout.smartphone-edit #rightMenu {
+            display: none !important;
+            position: fixed !important;
+            top: 52px;
+            right: 8px;
+            left: auto;
+            width: min(220px, calc(100vw - 16px)) !important;
+            height: auto !important;
+            max-height: min(52vh, calc(100dvh - 72px)) !important;
+            padding: 8px !important;
+            border: 1px solid #bbb !important;
+            border-left: 1px solid #bbb !important;
+            border-radius: 10px !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28) !important;
+            z-index: 10000 !important;
+            transform: none !important;
+            transition: none !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        html.smartphone-layout.smartphone-edit.smartphone-menu-open #rightMenu {
+            display: block !important;
+        }
+
+        html.smartphone-layout.smartphone-edit #rightMenu.menu-dragging {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4) !important;
+            opacity: 0.96;
+        }
+
+        html.smartphone-layout.smartphone-edit .menu_title {
+            padding: 10px 8px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            cursor: grab;
+        }
+
+        #smartphoneMenuToggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10050;
+            padding: 8px 12px;
+            font-size: 13px;
+            background: #555;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            isolation: isolate;
+            pointer-events: auto !important;
+            touch-action: manipulation;
+            -webkit-transform: translate3d(0, 0, 1px);
+            transform: translate3d(0, 0, 1px);
+        }
+
+        html.smartphone-layout.smartphone-edit #smartphoneMenuToggle {
+            display: block !important;
+            z-index: 10050 !important;
+            pointer-events: auto !important;
+        }
+
+        html.smartphone-layout.smartphone-user .palette-container:not(#if1) .palette-top {
+            display: flex !important;
+            visibility: hidden !important;
+            height: 32px !important;
+            min-height: 32px !important;
+            padding: 4px 6px;
+            flex-shrink: 0;
+            overflow: hidden;
+            pointer-events: none !important;
+        }
+
+        html.smartphone-layout.smartphone-edit .palette-container:not(#if1) .palette-top {
+            height: 32px;
+            min-height: 32px;
+            padding: 4px 6px;
+            flex-shrink: 0;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: grab;
+        }
+
+        html.smartphone-layout.smartphone-edit .palette-container.sm-component-dragging,
+        html.smartphone-layout.smartphone-edit .palette-container.sm-component-resizing {
+            z-index: 9000 !important;
+            opacity: 0.96;
+        }
+
+        html.smartphone-layout.smartphone-user .ui-resizable-handle {
+            display: none !important;
+        }
+
+        html.smartphone-layout.smartphone-edit .palette-container:not(#if1) .ui-resizable-se {
+            width: 36px !important;
+            height: 36px !important;
+            z-index: 9100 !important;
+            touch-action: none;
+            pointer-events: auto !important;
+            display: block !important;
+            -webkit-transform: translate3d(0, 0, 1px);
+            transform: translate3d(0, 0, 1px);
+        }
+
+        html.smartphone-layout.smartphone-edit .palette-container.sm-component-resizing .palette-cinderella,
+        html.smartphone-layout.smartphone-edit .palette-container.sm-component-resizing .CindyJS-widget,
+        html.smartphone-layout.smartphone-edit .palette-container.sm-component-resizing canvas {
+            pointer-events: none !important;
+        }
+
+        html.smartphone-layout .palette-container[data-component-type="button"] .palette-body {
+            padding: 4px !important;
+        }
+
+        html.smartphone-layout .palette-container[data-component-type="button"] input[type="button"] {
+            font-size: 14px;
+            min-height: 28px;
+            line-height: 1.2;
+        }
+    </style>
+
+        
+            
+    
+        
+            
+    
+        <script id="registered-compounds-data" type="application/json">
+            {}
+        </script>
+            
+    </head>
+<body style="cursor: auto;" class="">
+    <!-- コンポーネント作成メニュー -->
+    <div id="rightMenu" class="menu ui-draggable ui-draggable-disabled">
+        <div class="menu_title ui-draggable-handle"><span class="menu_drag_grip" aria-hidden="true" title="ドラッグして移動">☰</span>コンポーネント作成メニュー</div>
+        
+        <!-- テキストエリアセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="textarea">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">テキストエリア</span>
+            </div>
+            <div class="menu_section_content" data-content="textarea">
+                <div class="menu_item" id="addTextarea">テキストエリアを追加</div>
+                <input type="text" id="textareaConfig" placeholder="#id .class" class="menu_config">
+                <div id="textareaError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- テキストボックスセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="textbox">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">テキストボックス</span>
+            </div>
+            <div class="menu_section_content" data-content="textbox">
+                <div class="menu_item" id="addTextbox">テキストボックスを追加</div>
+                <input type="text" id="textboxConfig" placeholder="#id .class" class="menu_config">
+                <div id="textboxError" class="error-message" style="display: none;">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ボタンセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="button">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ボタン</span>
+            </div>
+            <div class="menu_section_content" data-content="button">
+                <div class="menu_item" id="addButton">ボタンを追加</div>
+                <input type="text" id="buttonConfig" placeholder="#id .class" class="menu_config">
+                <input type="text" id="buttonLabelConfig" placeholder="ボタンのラベル" class="menu_config">
+                <div id="buttonError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- PDFセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="pdf">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">PDF</span>
+            </div>
+            <div class="menu_section_content" data-content="pdf">
+                <div class="menu_item" id="addPDF">PDFファイルを読み込む</div>
+                <input type="text" id="pdfConfig" placeholder="#id .class" class="menu_config">
+                <div id="pdfError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 絵セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="figure">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">絵</span>
+            </div>
+            <div class="menu_section_content" data-content="figure">
+                <div class="menu_item" id="addFigure">絵を読み込む</div>
+                <input type="text" id="figureConfig" placeholder="#id .class" class="menu_config">
+                <div id="figureError" class="error-message">無効な形式です</div>
+                <input type="file" id="figureFileInput" accept="image/*" style="display:none;">
+            </div>
+        </div>
+
+        <!-- iframeセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="iframe">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">iframe</span>
+            </div>
+            <div class="menu_section_content" data-content="iframe">
+                <div class="menu_item" id="addIframe">iframeを追加</div>
+                <input type="text" id="iframeConfig" placeholder="#id .class" class="menu_config">
+                <input type="text" id="iframeUrlConfig" placeholder="URL" class="menu_config">
+                <input type="number" id="iframeRefreshSecondsConfig" placeholder="リフレッシュ時間（秒）" class="menu_config" min="1" step="1">
+                <div id="iframeError" class="error-message" style="display: none;">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- プルダウンメニューセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="dropdown">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">プルダウン</span>
+            </div>
+            <div class="menu_section_content" data-content="dropdown">
+                <div class="menu_item" id="addDropdown">プルダウンメニューを追加</div>
+                <input type="text" id="dropdownConfig" placeholder="#id .class" class="menu_config">
+                <textarea id="dropdownOptionsConfig" placeholder="選択肢を1行に1つずつ入力
+例:
+選択肢1
+選択肢2
+選択肢3" class="menu_config" rows="4"></textarea>
+                <div id="dropdownError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Algebrite端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="algebrite">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Algebrite端末</span>
+            </div>
+            <div class="menu_section_content" data-content="algebrite">
+                <div class="menu_item" id="addAlgebrite">Algebrite端末を追加</div>
+                <input type="text" id="algebriteConfig" placeholder="#id .class" class="menu_config">
+                <div id="algebriteError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Nerdamer端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="nerdamer">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Nerdamer端末</span>
+            </div>
+            <div class="menu_section_content" data-content="nerdamer">
+                <div class="menu_item" id="addNerdamer">Nerdamer端末を追加</div>
+                <input type="text" id="nerdamerConfig" placeholder="#id .class" class="menu_config">
+                <div id="nerdamerError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Python端末セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="python">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Python端末</span>
+            </div>
+            <div class="menu_section_content" data-content="python">
+                <div class="menu_item" id="addPython">Python端末を追加</div>
+                <input type="text" id="pythonConfig" placeholder="#id .class" class="menu_config">
+                <div id="pythonError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Terminalセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="terminal">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Terminal</span>
+            </div>
+            <div class="menu_section_content" data-content="terminal">
+                <div class="menu_item" id="addTerminal">Terminalを追加</div>
+                <input type="text" id="terminalConfig" placeholder="#id .class" class="menu_config">
+                <div style="padding: 4px; font-size: 11px;">
+                    <div style="margin-bottom: 4px;">
+                        <label>ホスト名:
+                            <input type="text" id="terminalHost" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="example.com">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロトコル:
+                            <select id="terminalProtocol" class="menu_config" style="width: 100%; margin-top: 2px;">
+                                <option value="telnet">Telnet</option>
+                                <option value="ssh">SSH</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div id="terminalSshVersionGroup" style="margin-bottom: 4px; display: none;">
+                        <label>SSHバージョン:
+                            <select id="terminalSshVersion" class="menu_config" style="width: 100%; margin-top: 2px;">
+                                <option value="ssh1">SSH1</option>
+                                <option value="ssh2" selected="">SSH2</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>ポート:
+                            <input type="number" id="terminalPort" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="23 (Telnet) / 22 (SSH)">
+                        </label>
+                    </div>
+                    <div id="terminalUsernameGroup" style="margin-bottom: 4px; display: none;">
+                        <label>ユーザー名:
+                            <input type="text" id="terminalUsername" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="ユーザー名">
+                        </label>
+                    </div>
+                    <div id="terminalPasswordGroup" style="margin-bottom: 4px; display: none;">
+                        <label>パスワード:
+                            <input type="password" id="terminalPassword" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="パスワード">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロキシURL:
+                            <input type="text" id="terminalProxyUrl" class="menu_config" style="width: 100%; margin-top: 2px;" value="ws://162.43.41.89:8022" placeholder="ws://162.43.41.89:8022">
+                        </label>
+                    </div>
+                </div>
+                <div id="terminalError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ファイル転送セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="filetransfer">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ファイル転送</span>
+            </div>
+            <div class="menu_section_content" data-content="filetransfer">
+                <div class="menu_item" id="addFileTransfer">ファイル転送を追加</div>
+                <input type="text" id="filetransferConfig" placeholder="#id .class" class="menu_config">
+                <div style="padding: 4px; font-size: 11px;">
+                    <div style="margin-bottom: 4px;">
+                        <label>ホスト名:
+                            <input type="text" id="ftHost" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="example.com">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>フォルダ:
+                            <input type="text" id="ftFolder" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="/home/user">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>ユーザー名:
+                            <input type="text" id="ftUsername" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="ユーザー名">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>パスワード:
+                            <input type="password" id="ftPassword" class="menu_config" style="width: 100%; margin-top: 2px;" placeholder="パスワード">
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 4px;">
+                        <label>プロキシURL:
+                            <input type="text" id="ftProxyUrl" class="menu_config" style="width: 100%; margin-top: 2px;" value="ws://162.43.41.89:8022" placeholder="ws://162.43.41.89:8022">
+                        </label>
+                    </div>
+                </div>
+                <div id="filetransferError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- TeXセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="tex">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">TeX</span>
+            </div>
+            <div class="menu_section_content" data-content="tex">
+                <div class="menu_item" id="addTeX">TeXを追加</div>
+                <input type="text" id="texConfig" placeholder="#id .class" class="menu_config">
+                <div id="texError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Markdownセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="markdown">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Markdown</span>
+            </div>
+            <div class="menu_section_content" data-content="markdown">
+                <div class="menu_item" id="addMarkdown">Markdownを追加</div>
+                <input type="text" id="markdownConfig" placeholder="#id .class" class="menu_config">
+                <div id="markdownError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- LLMセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="llm">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">LLM</span>
+            </div>
+            <div class="menu_section_content" data-content="llm">
+                <div class="menu_item" id="addLLM">LLMを追加</div>
+                <input type="text" id="llmConfig" placeholder="#id .class" class="menu_config">
+                <div id="llmError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- LM Studioセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="lmstudio">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">LM Studio</span>
+            </div>
+            <div class="menu_section_content" data-content="lmstudio">
+                <div class="menu_item" id="addLMStudio">LM Studioを追加</div>
+                <input type="text" id="lmstudioConfig" placeholder="#id .class" class="menu_config">
+                <div id="lmstudioError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- Cinderellaセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="cinderella">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">Cinderella</span>
+            </div>
+            <div class="menu_section_content" data-content="cinderella">
+                <div class="menu_item" id="addCinderella">Cinderellaファイルを読み込む</div>
+                <input type="text" id="cinderellaConfig" placeholder="#id .class" class="menu_config">
+                <div id="cinderellaError" class="error-message">無効な形式です</div>
+                <input type="file" id="cinderellaFileInput" accept=".html,.htm" style="display:none;">
+            </div>
+        </div>
+
+        <!-- 表計算セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="spreadsheet">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">表計算</span>
+            </div>
+            <div class="menu_section_content" data-content="spreadsheet">
+                <div class="menu_item" id="addSpreadsheet">表計算を追加</div>
+                <input type="text" id="spreadsheetConfig" placeholder="#id .class" class="menu_config">
+                <div id="spreadsheetError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- EChartsセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="echart">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ECharts</span>
+            </div>
+            <div class="menu_section_content" data-content="echart">
+                <div class="menu_item" id="addEChart">Echartを追加</div>
+                <input type="text" id="echartConfig" placeholder="#id .class" class="menu_config">
+                <div id="echartError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 音声文字変換セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="speech">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">音声文字変換</span>
+            </div>
+            <div class="menu_section_content" data-content="speech">
+                <div class="menu_item" id="addSpeech">音声文字変換を追加</div>
+                <input type="text" id="speechConfig" placeholder="#id .class" class="menu_config">
+                <div id="speechError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- ペイントセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="paint">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">ペイント</span>
+            </div>
+            <div class="menu_section_content" data-content="paint">
+                <div style="padding: 4px;">
+                    <input type="checkbox" id="paintOnCheckbox" class="painton">PAINT ON<br>
+                    <input type="checkbox" id="paintKeepCheckbox" class="paintkeep">KEEP
+                </div>
+            </div>
+        </div>
+
+        <!-- コンパウンドセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="compound">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">コンパウンド</span>
+            </div>
+            <div class="menu_section_content" data-content="compound">
+                <div class="menu_item" id="addCompound">コンパウンドを追加</div>
+                <input type="text" id="compoundConfig" placeholder="#id .class" class="menu_config">
+                <div id="compoundError" class="error-message">無効な形式です</div>
+            </div>
+        </div>
+
+        <!-- 初期化設定セクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="init-settings">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">初期化設定</span>
+            </div>
+            <div class="menu_section_content" data-content="init-settings">
+                <div class="menu_item" id="toggleUserSystemArea">開く</div>
+            </div>
+        </div>
+
+        <!-- コンパウンドメニューセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="compound-menu">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">コンパウンドメニュー</span>
+            </div>
+            <div class="menu_section_content" data-content="compound-menu">
+                <select id="compoundMenuSelect" style="width: 100%; padding: 4px; margin-bottom: 4px;"><option value="">登録されたコンパウンドを選択</option></select>
+                <div class="menu_item" id="createRegisteredCompound">コンパウンド作成</div>
+                <input type="text" id="registeredCompoundConfig" placeholder="#id .class" class="menu_config">
+                <div id="registeredCompoundError" class="error-message" style="display: none;">無効な形式です</div>
+                <div class="menu_item" id="deleteRegisteredCompound" style="margin-top: 4px;">メニュー削除</div>
+                <div class="menu_item" id="exportRegisteredCompound" style="margin-top: 4px;">Export</div>
+                <div class="menu_item" id="importRegisteredCompound" style="margin-top: 4px;">Import</div>
+                <input type="file" id="compoundImportFileInput" accept=".cpd" style="display: none;">
+            </div>
+        </div>
+
+        <!-- 保存ボタンセクション -->
+        <div class="menu_section">
+            <div class="menu_section_header" data-section="save">
+                <span class="menu_toggle_icon">▼</span>
+                <span class="menu_section_title">保存</span>
+            </div>
+            <div class="menu_section_content" data-content="save">
+                <div class="menu_item" id="saveButton">💾 保存</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隠しファイル入力フィールド -->
+    <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;">
+
+    <!-- パスワード入力モーダル -->
+    
+
+    <!-- モード切り替えボタン -->
+    <button id="modeButton">モード: 編集</button>
+
+    <!-- ペイントシステム用の要素 -->
+    <div id="paintbody" style="top: 0px; margin: auto; position: absolute; pointer-events: none;">
+        <div class="container" style="position: relative; width: 100%; height: 100%;">
+            <canvas class="mainCanvas" style="touch-action: none; border: none; position: absolute; top: 0px; left: 0px;" width="440" height="956"></canvas>
+            <canvas class="tempCanvas" style="touch-action: none; border: none; position: absolute; top: 0px; left: 0px;" width="440" height="956"></canvas>
+        </div>
+    </div>
+    <div id="paintmenu" style="pointer-events: auto;">
+<div class="paint-menu-container" style="position: fixed; top: 20px; left: 20px; display: none;">
+  <div class="paint-menu-titlebar" style="background: #4a90e2; color: white; padding: 4px 8px; cursor: move;">
+    ペイントメニュー
+  </div>
+  <div style="padding: 4px;">
+    <input type="checkbox" class="painton">PAINT ON<br>
+    <input type="checkbox" class="paintkeep">KEEP
+  </div>
+
+  <div class="paintmenubody" style="display: none;">
+    <!-- モード選択 -->
+    <div class="card-body border rounded" style="padding: 4px; margin: 4px;">
+      <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">モード</h5>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="mode" value="1" checked="">描く
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="mode" value="2">消しゴム
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="mode" value="3">選択
+        </label>
+      </div>
+    </div>
+
+    <!-- 描き込みタイプ -->
+    <div class="card-body border rounded" id="input-type-area" style="padding: 4px; margin: 4px;">
+      <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">描き込みタイプ</h5>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="1" checked="">ペン
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="2">直線
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="3">短径
+        </label>
+      </div>
+      <div class="form-check" style="margin: 2px 0;">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="input-type" value="4">円
+        </label>
+      </div>
+    </div>
+
+    <!-- 太さ, 透過度 -->
+    <div class="card-body border rounded" id="range-area" style="padding: 4px; margin: 4px;">
+      <div class="col" id="size-area">
+        <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">太さ</h5>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-thickness" value="1" checked="" onchange="lightPaint.sizeChange(this.value)">&nbsp;1  
+          <input type="radio" name="paint-thickness" value="2" onchange="lightPaint.sizeChange(this.value)">&nbsp;2  
+          <input type="radio" name="paint-thickness" value="4" onchange="lightPaint.sizeChange(this.value)">&nbsp;4  
+          <input type="radio" name="paint-thickness" value="8" onchange="lightPaint.sizeChange(this.value)">&nbsp;8
+        </div>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-thickness" value="15" onchange="lightPaint.sizeChange(this.value)">15  
+          <input type="radio" name="paint-thickness" value="30" onchange="lightPaint.sizeChange(this.value)">30  
+          <input type="radio" name="paint-thickness" value="50" onchange="lightPaint.sizeChange(this.value)">50  
+          <input type="radio" name="paint-thickness" value="100" onchange="lightPaint.sizeChange(this.value)">100
+        </div>
+      </div>
+      <div class="col" id="transparent-area">
+        <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">透過度</h5>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-alpha" value="1" checked="" onchange="lightPaint.alphaChange(this.value)">&nbsp;1  
+          <input type="radio" name="paint-alpha" value="0.8" onchange="lightPaint.alphaChange(this.value)">0.8  
+          <input type="radio" name="paint-alpha" value="0.5" onchange="lightPaint.alphaChange(this.value)">0.5  
+          <input type="radio" name="paint-alpha" value="0.3" onchange="lightPaint.alphaChange(this.value)">0.3
+        </div>
+        <div style="margin: 2px 0;">
+          <input type="radio" name="paint-alpha" value="0.2" onchange="lightPaint.alphaChange(this.value)">0.2  
+          <input type="radio" name="paint-alpha" value="0.1" onchange="lightPaint.alphaChange(this.value)">0.1  
+          <input type="radio" name="paint-alpha" value="0.05" onchange="lightPaint.alphaChange(this.value)">0.05  
+          <input type="radio" name="paint-alpha" value="0.01" onchange="lightPaint.alphaChange(this.value)">0.01
+        </div>
+      </div>
+    </div>
+
+    <!-- カラーピッカー -->
+    <div class="card-body border rounded" id="color-picker-area" style="padding: 4px; margin: 4px;">
+      <h5 class="card-title" style="margin: 2px 0; font-size: 0.9em;">色</h5>
+      <div class="rounded" style="background-color: whitesmoke;">
+        <input class="colorpicker" type="text" style="display: none;"><div class="sp-replacer sp-light"><div class="sp-preview"><div class="sp-preview-inner" style="background-color: rgb(0, 0, 0);"></div></div><div class="sp-dd">▼</div></div>
+      </div>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="card-body border rounded" id="undo-area" style="padding: 4px; margin: 4px;">
+        <div class="rounded" style="background-color: whitesmoke;">
+            <input type="button" value="戻る" onclick="lightPaint.obj[0].prevCanvas()">
+            <input type="button" value="進む" onclick="lightPaint.obj[0].nextCanvas()">
+            <input type="button" value="クリア" onclick="lightPaint.obj[0].resetCanvas(); lightPaint.obj[0].setLocalStoreage();">
+            <input type="button" value="保存" onclick="lightPaint.obj[0].saveAsHTML()">
+        </div>
+    </div>
+  </div>
+</div>
+</div>
+    
+    <!-- ペイントデータ保存用のtextarea（非表示） -->
+    <textarea id="paint-canvas-data" style="display:none;">data:image/png;base64,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</textarea>
+    
+    <!-- ペイントデータ読み込み用のスクリプト -->
+    <script id="load-canvas-image-script">
+        (function() {
+            // 画像読み込み関数を一度だけ定義
+            if (window.loadCanvasImage) return;
+            window.loadCanvasImage = function() {
+                const dataArea = document.getElementById('paint-canvas-data');
+                if (!dataArea || !dataArea.value) return;
+                
+                const canvas = document.querySelector('#paintbody .mainCanvas');
+                if (!canvas) {
+                    // キャンバスがまだ存在しない場合は少し待ってから再試行
+                    setTimeout(loadCanvasImage, 100);
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0);
+                    console.log('ペイントデータを復元しました');
+                };
+                img.onerror = function() {
+                    console.error('ペイントデータの読み込みに失敗しました');
+                };
+                img.src = dataArea.value;
+            };
+            
+            // DOMContentLoaded時に一度だけ実行
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadCanvasImage);
+            } else {
+                // 既に読み込み済みの場合は少し待ってから実行（lightPaintの初期化を待つ）
+                setTimeout(loadCanvasImage, 500);
+            }
+        })();
+    </script>
+
+    <script>
+    // Terminalメニュー内のプロトコル選択に応じてSSHバージョン入力の表示を切り替え
+    $(document).ready(function() {
+        function updateTerminalSshVisibility() {
+            const protocol = $('#terminalProtocol').val();
+            if (protocol === 'ssh') {
+                $('#terminalSshVersionGroup').show();
+                $('#terminalUsernameGroup').show();
+                $('#terminalPasswordGroup').show();
+                const portVal = $('#terminalPort').val().trim();
+                if (!portVal || portVal === '23') {
+                    $('#terminalPort').val('22');
+                }
+            } else {
+                $('#terminalSshVersionGroup').hide();
+                $('#terminalUsernameGroup').hide();
+                $('#terminalPasswordGroup').hide();
+                const portVal = $('#terminalPort').val().trim();
+                if (!portVal || portVal === '22') {
+                    $('#terminalPort').val('23');
+                }
+            }
+        }
+
+        $('#terminalProtocol').on('change', updateTerminalSshVisibility);
+        // 初期状態反映
+        updateTerminalSshVisibility();
+    });
+    </script>
+
+<script src="pcode1.js"></script>
+
+<script>
+$(document).ready(function() {
+    // ペイントシステムの初期化
+    // 画面全体のサイズを取得
+    const paintWidth = window.innerWidth;
+    const paintHeight = window.innerHeight;
+    
+    console.log("ペイントシステム初期化: width=" + paintWidth + ", height=" + paintHeight);
+    
+    // キャンバスが存在するか確認
+    const mainCanvas = document.querySelector('#paintbody .mainCanvas');
+    const tempCanvas = document.querySelector('#paintbody .tempCanvas');
+    
+    if (!mainCanvas || !tempCanvas) {
+        console.error("キャンバスが見つかりません");
+        return;
+    }
+    
+    // lightPaintクラスのインスタンスを作成
+    if (typeof lightPaint !== 'undefined') {
+        lightPaint.obj[0] = new lightPaint('paintbody', 'paintmenu', paintWidth, paintHeight);
+        console.log("lightPaint.obj[0] = ", lightPaint.obj[0]);
+        
+        // ペイントデータの読み込み（保存されたデータがある場合）
+        if (typeof loadCanvasImage === 'function') {
+            // lightPaintの初期化後に少し待ってから読み込み
+            setTimeout(function() {
+                loadCanvasImage();
+            }, 200);
+        }
+        
+        // メニューの「PAINT ON」チェックボックスにイベントリスナーを追加
+        // 右側メニューとペイントメニュー内の両方のチェックボックスを同期
+        function syncPaintOnState(isChecked) {
+            // 両方のチェックボックスを同期
+            $('#paintOnCheckbox').prop('checked', isChecked);
+            $('#paintmenu .painton').prop('checked', isChecked);
+            
+            if (isChecked) {
+                console.log("PAINT ON チェックされました");
+                // bodyにpaint-onクラスを追加
+                $('body').addClass('paint-on');
+                $('#paintbody').css('pointer-events', 'auto');
+                $('#paintmenu .paintmenubody').show();
+            } else {
+                console.log("PAINT ON チェック外れました");
+                // bodyからpaint-onクラスを削除
+                $('body').removeClass('paint-on');
+                $('#paintbody').css('pointer-events', 'none');
+                $('#paintmenu .paintmenubody').hide();
+            }
+        }
+        
+        // KEEP状態を更新する関数
+        function syncPaintKeepState(isChecked) {
+            // 両方のチェックボックスを同期
+            $('#paintKeepCheckbox').prop('checked', isChecked);
+            $('#paintmenu .paintkeep').prop('checked', isChecked);
+            
+            if (isChecked) {
+                console.log("KEEP チェックされました");
+                $('body').addClass('paint-keep');
+            } else {
+                console.log("KEEP チェック外れました");
+                $('body').removeClass('paint-keep');
+            }
+        }
+        
+        // 右側メニューのPAINT ONチェックボックス
+        $('#paintOnCheckbox').on('change', function() {
+            syncPaintOnState($(this).prop('checked'));
+        });
+        
+        // 右側メニューのKEEPチェックボックス
+        $('#paintKeepCheckbox').on('change', function() {
+            syncPaintKeepState($(this).prop('checked'));
+        });
+        
+        // ペイントメニュー内のPAINT ONチェックボックス（paint_5a.jsで設定されるが、念のため追加）
+        $(document).on('change', '#paintmenu .painton', function() {
+            syncPaintOnState($(this).prop('checked'));
+        });
+        
+        // ペイントメニュー内のKEEPチェックボックス
+        $(document).on('change', '#paintmenu .paintkeep', function() {
+            syncPaintKeepState($(this).prop('checked'));
+        });
+    } else {
+        console.error("lightPaintクラスが読み込まれていません");
+    }
+    
+    // ウィンドウリサイズ時にキャンバスサイズを更新
+    $(window).on('resize', function() {
+        if (lightPaint && lightPaint.obj[0]) {
+            const newWidth = window.innerWidth;
+            const newHeight = window.innerHeight;
+            
+            // キャンバスサイズを更新
+            lightPaint.obj[0].mainCanvas.width = newWidth;
+            lightPaint.obj[0].mainCanvas.height = newHeight;
+            lightPaint.obj[0].tempCanvas.width = newWidth;
+            lightPaint.obj[0].tempCanvas.height = newHeight;
+        }
+    });
+});
+</script>
+
+<script>
+function get_ketmath_input_raw() {
+
+  return(document.querySelector('iframe').contentWindow.cdy.evalcs('Text2').value.text);
+
+}
+
+function get_ketmath_input() {
+
+  return(get_ketmath_input_raw().split("=")[1]);
+
+}
+
+
+function query_chatgpt(question) {
+
+  if (question.trim() !== "") {
+    const encodedQuestion = encodeURIComponent(question);
+    const url = `https://chatgpt.com/?q=${encodedQuestion}`;
+	window.open(url, '_blank');
+  } else {
+    alert("質問を入力してください。");
+  }
+
+}
+
+        const PROXY_URL = "https://ktky.sakura.ne.jp/file/cindyjs/gemini-cindy-proxy.php";
+        const CINDY_GATEWAY_URL = "https://ktky.sakura.ne.jp/file/cindyjs/cindy_csinit_query.html";
+
+        function extractCindyScript(text) {
+            const block = text.match(/```cindyscript\s*([\s\S]*?)```/i);
+            if (block) return block[1].trim();
+
+            const urlBlock = text.match(/```URL\s*([\s\S]*?)```/i);
+            if (urlBlock) {
+                try {
+                    const u = new URL(urlBlock[1].trim());
+                    const csinit = u.searchParams.get("csinit");
+                    if (csinit) return decodeURIComponent(csinit);
+                } catch (_) {}
+            }
+
+            const scriptMatch = text.match(/((?:[^\n]*create\s*\([\s\S]*?)+allelements\s*\(\s*\))/);
+            if (scriptMatch) return scriptMatch[1].trim();
+
+            return null;
+        }
+
+        function buildResult(cindyScript) {
+            const url = CINDY_GATEWAY_URL + "?csinit=" + encodeURIComponent(cindyScript);
+            const formatted = "```cindyscript\n" + cindyScript + "\n```\n\n```URL\n" + url + "\n```";
+            return { formatted: formatted, url: url };
+        }
+
+        function normalizeResponse(rawText) {
+            const script = extractCindyScript(rawText);
+            if (script) {
+                return buildResult(script);
+            }
+            return {
+                formatted: rawText + "\n\n[警告: CindyScript を抽出できませんでした。上記を確認してください。]",
+                url: null,
+            };
+        }
+
+        function openBlankWindow() {
+            const win = window.open("about:blank", "_blank");
+            if (win) {
+//                win.document.title = "生成中...";
+//                win.document.body.innerHTML = "<p>作図 URL を生成しています...</p>";
+            }
+            return win;
+        }
+
+        function navigateWindow(win, url) {
+            if (win && !win.closed) {
+                win.location.href = url;
+                return true;
+            }
+            return false;
+        }
+
+        function closeWindow(win) {
+            if (win && !win.closed) {
+                win.close();
+            }
+        }
+
+        async function requestGemini(prompt) {
+            const response = await fetch(PROXY_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: prompt }),
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (_) {
+                throw new Error("サーバーからの応答を JSON として読み取れませんでした");
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || ("HTTP " + response.status));
+            }
+
+            return data;
+        }
+
+        async function cindySendPrompt(prompt) {
+//            const outputDiv = document.getElementById("output");
+
+            if (!prompt) {
+//                 outputDiv.textContent = "エラー: メッセージを入力してください。";
+                return;
+            }
+
+//             outputDiv.textContent = "生成中...";
+            const cindyWindow = openBlankWindow();
+            if (!cindyWindow) {
+//                 outputDiv.textContent = "エラー: ポップアップがブロックされました。ブラウザでこのサイトのポップアップを許可してください。";
+                return;
+            }
+
+            try {
+                const apiData = await requestGemini(prompt);
+                let text = apiData.text || "";
+                if (apiData.finishReason === "MAX_TOKENS") {
+                    text += "\n\n[警告: 出力がトークン上限で打ち切られた可能性があります。]";
+                }
+
+                const normalized = normalizeResponse(text);
+                if (normalized.url) {
+                    if (!navigateWindow(cindyWindow, normalized.url)) {
+                        closeWindow(cindyWindow);
+//                         outputDiv.textContent = normalized.formatted + "\n\n[警告: 新しいウィンドウを操作できませんでした。上記 URL を手動で開いてください。]";
+                        return;
+                    }
+//                     outputDiv.textContent = normalized.formatted;
+                    return;
+                }
+
+                closeWindow(cindyWindow);
+//                 outputDiv.textContent = normalized.formatted;
+            } catch (error) {
+                closeWindow(cindyWindow);
+                console.error("エラーが発生しました:", error);
+//                 outputDiv.textContent = "エラーが発生しました:\n" + error.message;
+            }
+        }
+        
+        
+</script>
+
+
+
+<div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons" aria-describedby="passwordModal" aria-labelledby="ui-id-1" style="display: none;"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix"><span id="ui-id-1" class="ui-dialog-title">パスワード認証</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div><div class="palette-container ui-draggable ui-resizable ui-draggable-disabled ui-resizable-disabled" id="if1" data-component-type="iframe" data-left="182px" data-top="8.3875px" data-width="678px" data-height="918px" data-url="kettaskv1F260831.html" data-refresh-seconds="" style="left: 182px; top: 8.3875px; width: 678px; height: 918px; transform-origin: left top;"><div class="palette-top ui-draggable-handle"><span class="title">Iframe (ID: if1)</span><div class="buttons"><button title="iframeを再読込">⟳</button><input type="range" min="50" max="200" class="iframe-zoom-slider" title="拡大・縮小"><button title="ユーザーモードと編集モードの両方で表示" class="user-mode-toggle-button">U</button><button title="コンポーネントをアイコン化" class="iconify-button">□</button><button title="子要素の表示/非表示" class="toggle-button">+</button><button title="子要素のコードを実行" class="execute-button">▶</button><button title="コンポーネントを削除" class="delete-button">×</button></div></div><div class="palette-body"><iframe style="width: 100%; height: 100%; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; margin: 0px; padding: 0px;" src="kettaskv1F260831.html"></iframe></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90; display: block;"></div></div>
+<script>
+(function () {
+    var layoutMode = null;
+    var applying = false;
+    var layoutTimer = null;
+    var stageOrig = null;
+    var currentScale = 1;
+    var currentOx = 0;
+    var currentOy = 0;
+    var menuDragBound = false;
+    var menuToggleBound = false;
+    var lastMenuToggleAt = 0;
+    var componentDragBound = false;
+    var componentResizeBound = false;
+    var draggingComponent = null;
+    var resizingComponent = null;
+
+    function isSmartphone() {
+        var ua = navigator.userAgent || '';
+        if (/iPhone|iPod|Windows Phone|BlackBerry|webOS|Opera Mini|IEMobile/i.test(ua)) return true;
+        if (/Android/i.test(ua) && /Mobile/i.test(ua)) return true;
+        if (/Android/i.test(ua) && Math.min(window.innerWidth, window.innerHeight) <= 820) return true;
+        return false;
+    }
+
+    function isUserMode() {
+        return !!(document.body && document.body.classList.contains('user-mode'));
+    }
+
+    function parsePx(value) {
+        var n = parseFloat(value);
+        return isFinite(n) ? n : 0;
+    }
+
+    function viewportSize() {
+        var vv = window.visualViewport;
+        if (vv && vv.width && vv.height) {
+            return { w: vv.width, h: vv.height };
+        }
+        return { w: window.innerWidth, h: window.innerHeight };
+    }
+
+    function getStageOrig() {
+        if (stageOrig) return stageOrig;
+        var if1 = document.getElementById('if1');
+        if (!if1) {
+            return { left: 182, top: 8, width: 678, height: 918 };
+        }
+        stageOrig = {
+            left: parsePx(if1.getAttribute('data-left') || if1.style.left) || 182,
+            top: parsePx(if1.getAttribute('data-top') || if1.style.top) || 8,
+            width: parsePx(if1.getAttribute('data-width') || if1.style.width) || 678,
+            height: parsePx(if1.getAttribute('data-height') || if1.style.height) || 918
+        };
+        return stageOrig;
+    }
+
+    function hideHyoujiChrome(iframe) {
+        try {
+            var doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+            if (!doc || !doc.head) return;
+            if (doc.getElementById('smartphone-fullscreen-hyouji')) return;
+            var style = doc.createElement('style');
+            style.id = 'smartphone-fullscreen-hyouji';
+            style.textContent = [
+                'html, body { margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: rgb(247,247,247) !important; }',
+                'header, #CSConsole { display: none !important; }',
+                '#CSCanvas { margin: 0 !important; }',
+                '#jsbox {',
+                '  display: block !important;',
+                '  visibility: visible !important;',
+                '  position: absolute !important;',
+                '  z-index: 10000 !important;',
+                '  background: #fff !important;',
+                '}'
+            ].join('\n');
+            doc.head.appendChild(style);
+        } catch (e) {}
+    }
+
+    function rememberDesktop(el) {
+        if (el.dataset.smLock === '1') return;
+        el.dataset.smLeft = String(parsePx(el.style.left || el.getAttribute('data-left')));
+        el.dataset.smTop = String(parsePx(el.style.top || el.getAttribute('data-top')));
+        el.dataset.smWidth = String(parsePx(el.style.width || el.getAttribute('data-width')) || el.offsetWidth || 200);
+        el.dataset.smHeight = String(parsePx(el.style.height || el.getAttribute('data-height')) || el.offsetHeight || 70);
+    }
+
+    function captureDesktopFromMobile(el) {
+        if (!currentScale || el.id === 'if1') return;
+        var orig = getStageOrig();
+        el.dataset.smLeft = String(orig.left + (parsePx(el.style.left) - currentOx) / currentScale);
+        el.dataset.smTop = String(orig.top + (parsePx(el.style.top) - currentOy) / currentScale);
+        el.dataset.smWidth = String(parsePx(el.style.width) / currentScale);
+        el.dataset.smHeight = String(parsePx(el.style.height) / currentScale);
+        el.dataset.smLock = '1';
+    }
+
+    function restoreDesktopStyles() {
+        document.querySelectorAll('.palette-container').forEach(function (el) {
+            if (el.dataset.smLeft == null) return;
+            el.style.left = el.dataset.smLeft + 'px';
+            el.style.top = el.dataset.smTop + 'px';
+            el.style.width = el.dataset.smWidth + 'px';
+            el.style.height = el.dataset.smHeight + 'px';
+            el.style.transform = '';
+            delete el.dataset.smLeft;
+            delete el.dataset.smTop;
+            delete el.dataset.smWidth;
+            delete el.dataset.smHeight;
+            delete el.dataset.smLock;
+        });
+        var if1 = document.getElementById('if1');
+        if (if1) {
+            var orig = getStageOrig();
+            if1.style.left = orig.left + 'px';
+            if1.style.top = orig.top + 'px';
+            if1.style.width = orig.width + 'px';
+            if1.style.height = orig.height + 'px';
+            if1.style.transform = '';
+        }
+    }
+
+    function applyOverlayBox(el, orig, scale, ox, oy) {
+        rememberDesktop(el);
+        var l = parsePx(el.dataset.smLeft);
+        var t = parsePx(el.dataset.smTop);
+        var w = parsePx(el.dataset.smWidth);
+        var h = parsePx(el.dataset.smHeight);
+        el.style.left = (ox + (l - orig.left) * scale) + 'px';
+        el.style.top = (oy + (t - orig.top) * scale) + 'px';
+        el.style.width = (w * scale) + 'px';
+        el.style.height = (h * scale) + 'px';
+        el.dataset.smLock = '1';
+    }
+
+    function syncCinderellaToOverlay() {
+        if (!window.jQuery) return;
+        document.querySelectorAll('.palette-container[data-component-type="cinderella"]').forEach(function (el) {
+            if (!el || el.id === 'if1') return;
+            if (draggingComponent === el || resizingComponent === el) return;
+            var instance = window.jQuery(el).data('instance');
+            if (instance && typeof instance.applyCindySizeFromContainer === 'function') {
+                instance.applyCindySizeFromContainer();
+            }
+        });
+    }
+
+    function ensureReadableOverlaySize(el) {
+        if (!el || el.id === 'if1') return;
+        if ((el.getAttribute('data-component-type') || '') !== 'button') return;
+        var titleH = 32;
+        var title = el.querySelector('.palette-top');
+        if (title) {
+            var cs = window.getComputedStyle(title);
+            if (cs.display !== 'none') {
+                titleH = Math.max(title.offsetHeight || 0, 32);
+            } else {
+                titleH = 0;
+            }
+        }
+        var minH = titleH + 36;
+        var h = parsePx(el.style.height) || el.offsetHeight || 0;
+        if (h + 0.5 >= minH) return;
+        el.style.height = minH + 'px';
+        if (currentScale > 0) {
+            el.dataset.smHeight = String(minH / currentScale);
+            el.dataset.smLock = '1';
+        }
+        syncInnerSize(el);
+    }
+
+    function layoutStage() {
+        var if1 = document.getElementById('if1');
+        if (!if1) return;
+        var orig = getStageOrig();
+        var vp = viewportSize();
+        var scale = Math.min(vp.w / orig.width, vp.h / orig.height);
+        if (!(scale > 0) || !isFinite(scale)) scale = 1;
+        var ox = (vp.w - orig.width * scale) / 2;
+        var oy = (vp.h - orig.height * scale) / 2;
+        currentScale = scale;
+        currentOx = ox;
+        currentOy = oy;
+        document.documentElement.style.setProperty('--sm-scale', String(scale));
+
+        if1.style.left = orig.left + 'px';
+        if1.style.top = orig.top + 'px';
+        if1.style.width = orig.width + 'px';
+        if1.style.height = orig.height + 'px';
+        if1.style.transformOrigin = 'top left';
+        if1.style.transform = 'translate(' + (ox - orig.left) + 'px, ' + (oy - orig.top) + 'px) scale(' + scale + ')';
+
+        try {
+            var $if1 = window.jQuery && window.jQuery(if1);
+            if ($if1 && $if1.draggable && $if1.draggable('instance')) $if1.draggable('disable');
+            if ($if1 && $if1.resizable && $if1.resizable('instance')) $if1.resizable('disable');
+        } catch (e) {}
+
+        var iframe = if1.querySelector('iframe');
+        if (iframe) {
+            iframe.style.position = '';
+            iframe.style.left = '';
+            iframe.style.top = '';
+            iframe.style.margin = '0';
+            iframe.style.padding = '0';
+            iframe.style.transform = '';
+            iframe.style.transformOrigin = '';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            hideHyoujiChrome(iframe);
+        }
+
+        document.querySelectorAll('.palette-container').forEach(function (el) {
+            if (el.id === 'if1') return;
+            if (draggingComponent === el || resizingComponent === el) return;
+            applyOverlayBox(el, orig, scale, ox, oy);
+            ensureReadableOverlaySize(el);
+            disableJqueryUiOnPhone(el);
+        });
+        syncCinderellaToOverlay();
+    }
+
+    function disableJqueryUiOnPhone(el) {
+        try {
+            var $el = window.jQuery && window.jQuery(el);
+            if ($el && $el.draggable && $el.draggable('instance')) $el.draggable('disable');
+            if ($el && $el.resizable && $el.resizable('instance')) $el.resizable('disable');
+        } catch (e) {}
+    }
+
+    function applyModeClasses() {
+        var html = document.documentElement;
+        html.classList.add('smartphone-layout');
+        html.classList.remove('smartphone-fullscreen');
+        if (document.body) document.body.classList.remove('smartphone-fullscreen');
+        if (isUserMode()) {
+            html.classList.add('smartphone-user');
+            html.classList.remove('smartphone-edit');
+            html.classList.remove('smartphone-menu-open');
+        } else {
+            if (!html.classList.contains('smartphone-edit')) {
+                html.classList.add('smartphone-menu-open');
+            }
+            html.classList.add('smartphone-edit');
+            html.classList.remove('smartphone-user');
+        }
+        try {
+            var menu = document.getElementById('rightMenu');
+            var $menu = window.jQuery && menu && window.jQuery(menu);
+            if ($menu && $menu.draggable && $menu.draggable('instance')) {
+                $menu.draggable('disable');
+            }
+        } catch (e) {}
+        enableMenuDrag();
+        enableComponentDrag();
+        enableComponentResize();
+        clampMenuToViewport();
+    }
+
+    function clampMenuToViewport() {
+        var menu = document.getElementById('rightMenu');
+        if (!menu) return;
+        if (!document.documentElement.classList.contains('smartphone-menu-open')) return;
+        var vp = viewportSize();
+        var rect = menu.getBoundingClientRect();
+        if (!(rect.width > 0) || !(rect.height > 0)) return;
+        var maxLeft = Math.max(0, vp.w - rect.width);
+        var maxTop = Math.max(0, vp.h - rect.height);
+        var left = Math.min(Math.max(0, rect.left), maxLeft);
+        var top = Math.min(Math.max(0, rect.top), maxTop);
+        if (Math.abs(left - rect.left) > 0.5 || Math.abs(top - rect.top) > 0.5) {
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            menu.style.right = 'auto';
+        }
+    }
+
+    function enableMenuDrag() {
+        var menu = document.getElementById('rightMenu');
+        if (!menu || menuDragBound) return;
+        var handle = menu.querySelector('.menu_title');
+        if (!handle) return;
+        menuDragBound = true;
+
+        var dragging = false;
+        var pointerId = null;
+        var startX = 0;
+        var startY = 0;
+        var startLeft = 0;
+        var startTop = 0;
+
+        function onPointerDown(e) {
+            if (e.isPrimary === false) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            dragging = true;
+            pointerId = e.pointerId;
+            if (handle.setPointerCapture) {
+                try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+            }
+            var rect = menu.getBoundingClientRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = rect.left;
+            startTop = rect.top;
+            menu.style.left = startLeft + 'px';
+            menu.style.top = startTop + 'px';
+            menu.style.right = 'auto';
+            menu.classList.add('menu-dragging');
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function onPointerMove(e) {
+            if (!dragging || (pointerId != null && e.pointerId !== pointerId)) return;
+            var vp = viewportSize();
+            var width = menu.offsetWidth;
+            var height = menu.offsetHeight;
+            var left = startLeft + (e.clientX - startX);
+            var top = startTop + (e.clientY - startY);
+            var maxLeft = Math.max(0, vp.w - width);
+            var maxTop = Math.max(0, vp.h - height);
+            left = Math.min(Math.max(0, left), maxLeft);
+            top = Math.min(Math.max(0, top), maxTop);
+            menu.style.left = left + 'px';
+            menu.style.top = top + 'px';
+            e.preventDefault();
+        }
+
+        function onPointerUp(e) {
+            if (!dragging || (pointerId != null && e.pointerId !== pointerId)) return;
+            dragging = false;
+            pointerId = null;
+            menu.classList.remove('menu-dragging');
+            if (handle.releasePointerCapture) {
+                try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
+            }
+            clampMenuToViewport();
+        }
+
+        handle.addEventListener('pointerdown', onPointerDown, { passive: false });
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function enableComponentDrag() {
+        if (componentDragBound) return;
+        componentDragBound = true;
+
+        var pointerId = null;
+        var startX = 0;
+        var startY = 0;
+        var startLeft = 0;
+        var startTop = 0;
+
+        function canDragComponents() {
+            return document.documentElement.classList.contains('smartphone-edit') && !isUserMode();
+        }
+
+        function onPointerDown(e) {
+            if (!canDragComponents()) return;
+            if (e.isPrimary === false) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            var target = e.target;
+            if (!target || !target.closest) return;
+            if (target.closest('.buttons, button, input, select, textarea, a, #rightMenu, #smartphoneMenuToggle, #modeButton, .ui-resizable-handle')) return;
+            var handle = target.closest('.palette-top');
+            if (!handle) return;
+            var el = handle.closest('.palette-container');
+            if (!el || el.id === 'if1') return;
+
+            draggingComponent = el;
+            pointerId = e.pointerId;
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = parsePx(el.style.left);
+            startTop = parsePx(el.style.top);
+            el.classList.add('sm-component-dragging');
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function onPointerMove(e) {
+            if (!draggingComponent || pointerId != null && e.pointerId !== pointerId) return;
+            var el = draggingComponent;
+            var vp = viewportSize();
+            var width = el.offsetWidth;
+            var height = el.offsetHeight;
+            var left = startLeft + (e.clientX - startX);
+            var top = startTop + (e.clientY - startY);
+            var minVisible = 40;
+            left = Math.min(Math.max(left, minVisible - width), vp.w - minVisible);
+            top = Math.min(Math.max(top, 0), vp.h - minVisible);
+            el.style.left = left + 'px';
+            el.style.top = top + 'px';
+            e.preventDefault();
+        }
+
+        function onPointerUp(e) {
+            if (!draggingComponent || pointerId != null && e.pointerId !== pointerId) return;
+            var el = draggingComponent;
+            el.classList.remove('sm-component-dragging');
+            captureDesktopFromMobile(el);
+            if (window.jQuery) {
+                try { window.jQuery(el).trigger('dragstop'); } catch (err) {}
+            }
+            draggingComponent = null;
+            pointerId = null;
+        }
+
+        document.addEventListener('pointerdown', onPointerDown, { passive: false });
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function getResizeLimits(el) {
+        var scale = currentScale > 0 ? currentScale : 1;
+        var minW = 80;
+        var minH = 50;
+        var maxW = 2000;
+        var maxH = 2000;
+        try {
+            var $el = window.jQuery && window.jQuery(el);
+            if ($el && $el.resizable && $el.resizable('instance')) {
+                var optMinW = $el.resizable('option', 'minWidth');
+                var optMinH = $el.resizable('option', 'minHeight');
+                var optMaxW = $el.resizable('option', 'maxWidth');
+                var optMaxH = $el.resizable('option', 'maxHeight');
+                if (optMinW) minW = optMinW * scale;
+                if (optMinH) minH = optMinH * scale;
+                if (optMaxW) maxW = optMaxW * scale;
+                if (optMaxH) maxH = optMaxH * scale;
+            }
+        } catch (e) {}
+        var vp = viewportSize();
+        maxW = Math.min(Math.max(maxW, el.offsetWidth || 0), vp.w);
+        maxH = Math.min(Math.max(maxH, el.offsetHeight || 0), vp.h);
+        minW = Math.max(40, minW);
+        minH = Math.max(36, minH);
+        if ((el.getAttribute('data-component-type') || '') === 'button') {
+            minH = Math.max(minH, isUserMode() ? 36 : 68);
+        }
+        return { minW: minW, minH: minH, maxW: maxW, maxH: maxH };
+    }
+
+    function syncInnerSize(el) {
+        var inners = el.querySelectorAll('.palette-body textarea, .palette-body input, .palette-body select');
+        for (var i = 0; i < inners.length; i++) {
+            inners[i].style.width = '100%';
+            inners[i].style.height = '100%';
+        }
+    }
+
+    function findResizeComponent(e) {
+        var target = e.target;
+        if (target && target.closest) {
+            if (target.closest('#rightMenu, #smartphoneMenuToggle, #modeButton, .ui-dialog')) return null;
+            var handle = target.closest('.ui-resizable-se, .ui-resizable-handle');
+            if (handle) {
+                var fromHandle = handle.closest('.palette-container');
+                if (fromHandle && fromHandle.id !== 'if1') return fromHandle;
+            }
+        }
+        if (e.clientX == null || e.clientY == null) return null;
+        var x = e.clientX;
+        var y = e.clientY;
+        var nodes = document.querySelectorAll('.palette-container');
+        var best = null;
+        var bestArea = Infinity;
+        var hit = 44;
+        for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            if (!el || el.id === 'if1') continue;
+            if (!el.querySelector('.ui-resizable-se, .ui-resizable-handle')) continue;
+            var r = el.getBoundingClientRect();
+            if (x >= r.right - hit && x <= r.right + 8 && y >= r.bottom - hit && y <= r.bottom + 8) {
+                var area = Math.max(1, r.width * r.height);
+                if (area < bestArea) {
+                    best = el;
+                    bestArea = area;
+                }
+            }
+        }
+        return best;
+    }
+
+    function notifyComponentResized(el, event, origW, origH) {
+        captureDesktopFromMobile(el);
+        if (!window.jQuery) return;
+        var $el = window.jQuery(el);
+        var ui = {
+            element: $el,
+            helper: $el,
+            size: { width: el.offsetWidth, height: el.offsetHeight },
+            originalSize: { width: origW, height: origH },
+            position: { left: parsePx(el.style.left), top: parsePx(el.style.top) }
+        };
+        try {
+            var widget = null;
+            try { widget = $el.resizable('instance'); } catch (err1) { widget = null; }
+            if (widget && typeof widget._trigger === 'function') {
+                widget._trigger('stop', event, ui);
+            } else {
+                $el.trigger('resizestop', [ui]);
+            }
+        } catch (err) {
+            try { $el.trigger('resizestop', [ui]); } catch (err2) {}
+        }
+        var instance = $el.data('instance');
+        if (instance && typeof instance.applyCindySizeFromContainer === 'function') {
+            instance.applyCindySizeFromContainer(ui.size.width, ui.size.height);
+        }
+    }
+
+    function enableComponentResize() {
+        if (componentResizeBound) return;
+        componentResizeBound = true;
+
+        var pointerId = null;
+        var startX = 0;
+        var startY = 0;
+        var startW = 0;
+        var startH = 0;
+        var limits = null;
+        var captureEl = null;
+
+        function canResizeComponents() {
+            return document.documentElement.classList.contains('smartphone-edit') && !isUserMode();
+        }
+
+        function onPointerDown(e) {
+            if (!canResizeComponents()) return;
+            if (e.isPrimary === false) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            var el = findResizeComponent(e);
+            if (!el) return;
+
+            resizingComponent = el;
+            pointerId = e.pointerId;
+            startX = e.clientX;
+            startY = e.clientY;
+            startW = el.offsetWidth;
+            startH = el.offsetHeight;
+            limits = getResizeLimits(el);
+            el.classList.add('sm-component-resizing');
+            captureEl = el.querySelector('.ui-resizable-se, .ui-resizable-handle') || el;
+            if (captureEl && captureEl.setPointerCapture) {
+                try { captureEl.setPointerCapture(e.pointerId); } catch (err) {}
+            }
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function onPointerMove(e) {
+            if (!resizingComponent || (pointerId != null && e.pointerId !== pointerId)) return;
+            var el = resizingComponent;
+            var w = startW + (e.clientX - startX);
+            var h = startH + (e.clientY - startY);
+            w = Math.min(Math.max(w, limits.minW), limits.maxW);
+            h = Math.min(Math.max(h, limits.minH), limits.maxH);
+            el.style.width = w + 'px';
+            el.style.height = h + 'px';
+            syncInnerSize(el);
+            e.preventDefault();
+        }
+
+        function onPointerUp(e) {
+            if (!resizingComponent || (pointerId != null && e.pointerId !== pointerId)) return;
+            var el = resizingComponent;
+            var origW = startW;
+            var origH = startH;
+            el.classList.remove('sm-component-resizing');
+            syncInnerSize(el);
+            if (captureEl && captureEl.releasePointerCapture) {
+                try { captureEl.releasePointerCapture(e.pointerId); } catch (err) {}
+            }
+            captureEl = null;
+            notifyComponentResized(el, e, origW, origH);
+            resizingComponent = null;
+            pointerId = null;
+            limits = null;
+        }
+
+        document.addEventListener('pointerdown', onPointerDown, { passive: false, capture: true });
+        document.addEventListener('pointermove', onPointerMove, { passive: false, capture: true });
+        document.addEventListener('pointerup', onPointerUp, { capture: true });
+        document.addEventListener('pointercancel', onPointerUp, { capture: true });
+
+        function onTouchGuard(e) {
+            if (!canResizeComponents()) return;
+            if (resizingComponent) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            if (!e.changedTouches || !e.changedTouches.length) return;
+            var t = e.changedTouches[0];
+            if (findResizeComponent({ target: e.target, clientX: t.clientX, clientY: t.clientY })) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+        document.addEventListener('touchstart', onTouchGuard, { passive: false, capture: true });
+        document.addEventListener('touchmove', onTouchGuard, { passive: false, capture: true });
+        document.addEventListener('touchend', onTouchGuard, { capture: true });
+        document.addEventListener('touchcancel', onTouchGuard, { capture: true });
+    }
+
+    function hitRect(el, x, y, pad) {
+        if (!el) return false;
+        var r = el.getBoundingClientRect();
+        if (!(r.width > 0) || !(r.height > 0)) return false;
+        pad = pad || 0;
+        return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+    }
+
+    function toggleSmartphoneMenu(forceOpen) {
+        if (isUserMode()) return;
+        var now = Date.now();
+        if (now - lastMenuToggleAt < 350) return;
+        lastMenuToggleAt = now;
+        var html = document.documentElement;
+        var open = (forceOpen === true) ? true : (forceOpen === false) ? false : !html.classList.contains('smartphone-menu-open');
+        html.classList.toggle('smartphone-menu-open', open);
+        var btn = document.getElementById('smartphoneMenuToggle');
+        if (btn) btn.textContent = open ? '閉じる' : 'メニュー';
+        var menu = document.getElementById('rightMenu');
+        if (menu) {
+            if (open) {
+                menu.style.removeProperty('display');
+                requestAnimationFrame(clampMenuToViewport);
+            } else {
+                menu.style.removeProperty('display');
+            }
+        }
+    }
+
+    function ensureMenuToggle() {
+        var btn = document.getElementById('smartphoneMenuToggle');
+        if (!btn) {
+            btn = document.createElement('button');
+            btn.id = 'smartphoneMenuToggle';
+            btn.type = 'button';
+            btn.textContent = 'メニュー';
+            document.body.appendChild(btn);
+        }
+        if (!menuToggleBound) {
+            menuToggleBound = true;
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleSmartphoneMenu();
+            });
+            function onChromePointerDown(e) {
+                if (!document.documentElement.classList.contains('smartphone-edit') || isUserMode()) return;
+                if (e.isPrimary === false) return;
+                var toggle = document.getElementById('smartphoneMenuToggle');
+                if (!toggle || toggle.style.display === 'none') return;
+                if (!hitRect(toggle, e.clientX, e.clientY, 6)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                toggleSmartphoneMenu();
+            }
+            function onChromeTouchStart(e) {
+                if (!document.documentElement.classList.contains('smartphone-edit') || isUserMode()) return;
+                if (!e.changedTouches || !e.changedTouches.length) return;
+                var toggle = document.getElementById('smartphoneMenuToggle');
+                if (!toggle || toggle.style.display === 'none') return;
+                var t = e.changedTouches[0];
+                if (!hitRect(toggle, t.clientX, t.clientY, 6)) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                toggleSmartphoneMenu();
+            }
+            document.addEventListener('pointerdown', onChromePointerDown, { capture: true, passive: false });
+            document.addEventListener('touchstart', onChromeTouchStart, { capture: true, passive: false });
+        }
+        btn.textContent = document.documentElement.classList.contains('smartphone-menu-open') ? '閉じる' : 'メニュー';
+        btn.style.display = isUserMode() ? 'none' : 'block';
+    }
+
+    function applySmartphoneLayout() {
+        if (applying) return;
+        applying = true;
+        try {
+            var mode = isUserMode() ? 'user' : 'edit';
+            layoutMode = mode;
+            applyModeClasses();
+            ensureMenuToggle();
+            layoutStage();
+        } finally {
+            applying = false;
+        }
+    }
+
+    function scheduleLayout() {
+        if (layoutTimer) clearTimeout(layoutTimer);
+        layoutTimer = setTimeout(function () {
+            layoutTimer = null;
+            applySmartphoneLayout();
+        }, 50);
+    }
+
+    function enableSmartphoneLayout() {
+        applySmartphoneLayout();
+        setTimeout(syncCinderellaToOverlay, 700);
+        setTimeout(syncCinderellaToOverlay, 1600);
+
+        var iframe = document.querySelector('#if1 iframe');
+        if (iframe) {
+            iframe.addEventListener('load', function () {
+                scheduleLayout();
+            });
+        }
+        window.addEventListener('resize', scheduleLayout);
+        window.addEventListener('orientationchange', function () {
+            setTimeout(scheduleLayout, 200);
+        });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', scheduleLayout);
+        }
+
+        if (document.body) {
+            var classObserver = new MutationObserver(function (mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    var oldVal = mutations[i].oldValue || '';
+                    var hadUserMode = /\buser-mode\b/.test(oldVal);
+                    var hasUserMode = document.body.classList.contains('user-mode');
+                    if (hadUserMode !== hasUserMode) {
+                        scheduleLayout();
+                        break;
+                    }
+                }
+            });
+            classObserver.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class'],
+                attributeOldValue: true
+            });
+
+            var childObserver = new MutationObserver(function (mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    var nodes = mutations[i].addedNodes;
+                    for (var j = 0; j < nodes.length; j++) {
+                        var n = nodes[j];
+                        if (n.nodeType === 1 && n.classList && n.classList.contains('palette-container')) {
+                            if (n.id !== 'if1') {
+                                applyOverlayBox(n, getStageOrig(), currentScale, currentOx, currentOy);
+                                n.setAttribute('data-sm-created-on-phone', '1');
+                                ensureReadableOverlaySize(n);
+                                disableJqueryUiOnPhone(n);
+                            }
+                            scheduleLayout();
+                            return;
+                        }
+                    }
+                }
+            });
+            childObserver.observe(document.body, { childList: true });
+        }
+
+        var modeBtn = document.getElementById('modeButton');
+        if (modeBtn) {
+            modeBtn.addEventListener('click', function () {
+                setTimeout(scheduleLayout, 0);
+                setTimeout(scheduleLayout, 150);
+            });
+        }
+
+        if (window.jQuery) {
+            window.jQuery(document).on('dragstop resizestop', '.palette-container', function () {
+                if (this.id === 'if1') return;
+                captureDesktopFromMobile(this);
+            });
+        }
+
+        var saveBtn = document.getElementById('saveButton');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function () {
+                restoreDesktopStyles();
+                setTimeout(scheduleLayout, 0);
+            }, true);
+        }
+    }
+
+    if (!isSmartphone()) return;
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', enableSmartphoneLayout);
+    } else {
+        enableSmartphoneLayout();
+    }
+})();
+</script>
+<div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons" aria-describedby="passwordModal" style="height: auto; width: 400px; top: 431.685px; left: 437.133px; display: none;" aria-labelledby="ui-id-1"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix"><span id="ui-id-1" class="ui-dialog-title">&nbsp;</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div><div class="palette-container ui-draggable ui-resizable ui-draggable-disabled ui-resizable-disabled" id="UserSystemArea" data-component-type="textarea" style="left: 200px; top: 118.483px; width: 420px; height: 241px; display: none;" data-user-mode-visible="E" data-left="200px" data-top="118.483px" data-width="420px" data-height="241px" data-content="lightPaint.menuOff();
+
+function polling() {
+  timecount = timecount+1;
+  let nqu = document.querySelector('#if1 iframe').contentWindow.cdy.evalcs(&quot;nqu&quot;).value.real;
+  for (let key in show_hide) {
+    if (show_hide[key].indexOf(nqu) &gt;= 0) {
+       $(key).show();
+    } else {
+       $(key).hide();
+    }
+  }
+}
+
+const hasContent = (str) =&gt; /\S/.test(str);
+
+var str1 = PaletteComponent.getMainText(&quot;show_hide&quot;);
+
+if (hasContent(str1)) {
+  var show_hide = JSON.parse(str1);
+  if (!(show_hide &amp;&amp; (Object.keys(show_hide).length === 0))) {
+     var timecount = 0;
+     var timeout = 10000;
+     const intervalId = setInterval(() =&gt;{
+       polling();
+        if(timecount &gt; timeout){
+        clearInterval(intervalId);
+       }}, 
+     1000);
+  }
+}
+" data-child-visible="false"><div class="palette-top ui-draggable-handle"><span class="title">Textarea (ID: UserSystemArea)</span><div class="buttons"><button title="編集モードのみ表示" class="user-mode-toggle-button">E</button><button title="コンポーネントをアイコン化" class="iconify-button">□</button><button title="子要素の表示/非表示" class="toggle-button">+</button><button title="子要素のコードを実行" class="execute-button">▶</button><button title="コンポーネントを削除" class="delete-button">×</button></div></div><div class="palette-body"><textarea style="width: 368.667px; height: 199.667px;"></textarea></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div></div><button id="smartphoneMenuToggle" type="button" style="display: block;">閉じる</button><div tabindex="-1" role="dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons" aria-describedby="passwordModal" style="height: auto; width: 400px; top: 370.691px; left: 36.1333px; display: none;" aria-labelledby="ui-id-1"><div class="ui-dialog-titlebar ui-corner-all ui-widget-header ui-helper-clearfix"><span id="ui-id-1" class="ui-dialog-title">&nbsp;</span><button type="button" class="ui-button ui-corner-all ui-widget ui-button-icon-only ui-dialog-titlebar-close" title="Close"><span class="ui-button-icon ui-icon ui-icon-closethick"></span><span class="ui-button-icon-space"> </span>Close</button></div><div id="passwordModal" class="ui-dialog-content ui-widget-content" style="width: auto; min-height: 15.3707px; max-height: none; height: auto;">
+        <p>パスワードを入力してください:</p>
+        <input type="password" id="passwordInput" style="width: 100%;">
+    </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div><div class="palette-container ui-draggable ui-resizable ui-draggable-disabled ui-resizable-disabled" id="show_hide" data-component-type="textbox" style="left: 186.851px; top: -166.503px; width: 437.926px; height: 107.864px;" data-sm-created-on-phone="1" data-user-mode-visible="E" data-left="186.851px" data-top="-166.503px" data-width="437.926px" data-height="107.864px" data-value=""><div class="palette-top ui-draggable-handle"><span class="title">Textbox (ID: show_hide)</span><div class="buttons"><button title="編集モードのみ表示" class="user-mode-toggle-button">E</button><button title="コンポーネントをアイコン化" class="iconify-button">□</button><button title="子要素の表示/非表示" class="toggle-button">+</button><button title="子要素のコードを実行" class="execute-button">▶</button><button title="コンポーネントを削除" class="delete-button">×</button></div></div><div class="palette-body"><input type="text" style="width: 100%; height: 100%;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div></div></body></html>
