@@ -2072,13 +2072,13 @@
                     if (!$(this.container).resizable("instance")) {
                         const inputElement = this.getInputElement();
                         this.container.style.width = '150px';
-                        this.container.style.height = '60px';
+                        this.container.style.height = '90px';
                         $(this.container).resizable({
                             handles: 'se',
                             minWidth: 80,
-                            minHeight: 40,
+                            minHeight: 70,
                             maxWidth: 400,
-                            maxHeight: 100,
+                            maxHeight: 250,
                             aspectRatio: false,
                             alsoResize: inputElement,
                             start: (event, ui) => {
@@ -4079,6 +4079,8 @@
                     if (adjustedConfig.ports && adjustedConfig.ports.length > 0) {
                         adjustedConfig.ports[0].id = `CSCanvas-${this.id}`;
                     }
+                    // 現在の枠サイズにキャンバスを合わせる（スマホの縮小表示でも図全体が見えるようにする）
+                    this.fitCindyPortsToContainer(adjustedConfig);
                     // scripts は常にこのコンポーネント用のワイルドカードに設定する
                     // 例: id が cs-コンポーネントID-*- のスクリプトをすべて対象にする
                     adjustedConfig.scripts = `cs-${this.id}-*`;
@@ -4104,6 +4106,46 @@
                 };
 
                 checkCindyJS();
+            }
+
+            getCindyTitleBarHeight() {
+                const titleBar = this.container.querySelector('.palette-top');
+                if (!titleBar) return 20;
+                const cs = window.getComputedStyle(titleBar);
+                if (cs.display === 'none') return 0;
+                const h = titleBar.offsetHeight;
+                return h > 0 ? h : 20;
+            }
+
+            fitCindyPortsToContainer(config, forcedWidth, forcedHeight) {
+                if (!config || !config.ports || !config.ports.length) return false;
+                const newWidth = forcedWidth != null ? Number(forcedWidth) : this.container.offsetWidth;
+                const newHeight = forcedHeight != null ? Number(forcedHeight) : this.container.offsetHeight;
+                if (!isFinite(newWidth) || !isFinite(newHeight) || newWidth < 2 || newHeight < 2) return false;
+                const titleBarHeight = this.getCindyTitleBarHeight();
+                const cindyWidth = Math.max(50, Math.round(newWidth));
+                const cindyHeight = Math.max(50, Math.round(newHeight - titleBarHeight));
+                const port = config.ports[0];
+                const same = Math.abs(Number(port.width) - cindyWidth) < 2 && Math.abs(Number(port.height) - cindyHeight) < 2;
+                port.width = cindyWidth;
+                port.height = cindyHeight;
+                return !same;
+            }
+
+            applyCindySizeFromContainer(forcedWidth, forcedHeight) {
+                const config = this.getCindyConfig();
+                if (!config || !config.ports || !config.ports.length) {
+                    console.warn('CindyJS config not found for resizing component:', this.id);
+                    return;
+                }
+                const changed = this.fitCindyPortsToContainer(config, forcedWidth, forcedHeight);
+                this.saveCindyConfig(config, this.getCindyScripts());
+                if (!changed && this.cindyInstance) return;
+                if (this._cindyResizeTimer) clearTimeout(this._cindyResizeTimer);
+                this._cindyResizeTimer = setTimeout(() => {
+                    this._cindyResizeTimer = null;
+                    this.initializeCindyJS();
+                }, 150);
             }
 
             getComponentName() { return 'Cinderella'; }
@@ -4437,32 +4479,9 @@
                             stop: (event, ui) => {
                                 console.log(`Resized Cinderella container ID: ${this.id}`);
                                 restoreCanvasOnResizeStop(this.container);
-                                
-                                // リサイズ後のサイズを取得
-                                const newWidth = parseInt(ui.size.width, 10);
-                                const newHeight = parseInt(ui.size.height, 10);
-                                
-                                // タイトルバーの高さを考慮（通常20px）
-                                const titleBarHeight = 20;
-                                const cindyWidth = newWidth;
-                                const cindyHeight = newHeight - titleBarHeight;
-                                
-                                console.log(`Resized to: ${newWidth}x${newHeight}, Cinderella size: ${cindyWidth}x${cindyHeight}`);
-                                
-                                // CindyJSの設定を更新
-                                const config = this.getCindyConfig();
-                                if (config && config.ports && config.ports.length > 0) {
-                                    config.ports[0].width = cindyWidth;
-                                    config.ports[0].height = cindyHeight;
-                                    this.saveCindyConfig(config, this.getCindyScripts());
-                                    
-                                    // リサイズ後にCindyJSを再初期化
-                                    setTimeout(() => {
-                                        this.initializeCindyJS();
-                                    }, 100);
-                                } else {
-                                    console.warn('CindyJS config not found for resizing component:', this.id);
-                                }
+                                const newWidth = ui && ui.size ? ui.size.width : undefined;
+                                const newHeight = ui && ui.size ? ui.size.height : undefined;
+                                this.applyCindySizeFromContainer(newWidth, newHeight);
                             }
                         });
                     } else {
@@ -4476,7 +4495,16 @@
             }
 
             serializeState() {
-                const config = this.getCindyConfig();
+                let config = this.getCindyConfig();
+                if (config && config.ports && config.ports.length > 0) {
+                    const boxW = parseInt(this.container.style.width, 10) || this.container.offsetWidth;
+                    const boxH = parseInt(this.container.style.height, 10) || this.container.offsetHeight;
+                    if (isFinite(boxW) && isFinite(boxH)) {
+                        config.ports[0].width = Math.max(50, Math.round(boxW));
+                        config.ports[0].height = Math.max(50, Math.round(boxH - 20));
+                        this.saveCindyConfig(config, this.getCindyScripts());
+                    }
+                }
                 const csScripts = this.getCindyScripts();
                 // 現在のサイズを取得（計算された値も含む）
                 const computedStyle = window.getComputedStyle(this.container);
