@@ -6973,30 +6973,42 @@ csdraw(&quot;c3&quot;,com)
     </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div>
 <script>
 document.addEventListener("click", function(e) {
+
     var b3 = document.getElementById("b3");
 
     if (b3 && b3.contains(e.target)) {
+
         alert("b3をクリックしました");
 
-        var sh = document.getElementById("show_hide");
+        var c3 = document.getElementById("c3");
 
-        if (!sh) {
-            alert("show_hide が見つかりません");
+        if (!c3) {
+            alert("c3が見つかりません");
             return;
         }
 
-        alert("show_hide は見つかりました");
+        var canvas = c3.querySelector("canvas");
 
-        var inp = sh.querySelector("input");
-
-        if (!inp) {
-            alert("show_hide の中に input がありません");
+        if (!canvas) {
+            alert("c3のcanvasが見つかりません");
             return;
         }
 
-        alert("input が見つかりました");
+        alert("c3のcanvasが見つかりました");
 
-        inp.value = "CLICKED";
+        var cdy = canvas.cdy;
+
+        if (!cdy) {
+            alert("canvas.cdyがありません");
+            return;
+        }
+
+        alert("cdyが見つかりました");
+
+        cdy.evokeCS("sgn=sgn*(-1);");
+        cdy.redraw();
+
+        alert("sgnを変更しました");
     }
 });
 </script></body></html>
