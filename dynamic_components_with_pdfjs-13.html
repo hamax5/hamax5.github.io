@@ -6976,7 +6976,7 @@ document.addEventListener("click", function(e) {
     var b3 = document.getElementById("b3");
 
     if (b3 && b3.contains(e.target)) {
-        alert("b3をクリックしました");
+        document.getElementById("show_hide").querySelector("input").value = "CLICKED";
     }
 });
 </script></body></html>
