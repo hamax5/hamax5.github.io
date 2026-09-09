@@ -6972,43 +6972,5 @@ csdraw(&quot;c3&quot;,com)
         <input type="password" id="passwordInput" style="width: 100%;">
     </div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-corner-all ui-widget">OK</button><button type="button" class="ui-button ui-corner-all ui-widget">キャンセル</button></div></div></div>
 <script>
-document.addEventListener("click", function(e) {
-
-    var b3 = document.getElementById("b3");
-
-    if (b3 && b3.contains(e.target)) {
-
-        alert("b3をクリックしました");
-
-        var c3 = document.getElementById("c3");
-
-        if (!c3) {
-            alert("c3が見つかりません");
-            return;
-        }
-
-        var canvas = c3.querySelector("canvas");
-
-        if (!canvas) {
-            alert("c3のcanvasが見つかりません");
-            return;
-        }
-
-        alert("c3のcanvasが見つかりました");
-
-        var cdy = canvas.cdy;
-
-        if (!cdy) {
-            alert("canvas.cdyがありません");
-            return;
-        }
-
-        alert("cdyが見つかりました");
-
-        cdy.evokeCS("sgn=sgn*(-1);");
-        cdy.redraw();
-
-        alert("sgnを変更しました");
-    }
-});
+alert("b3をクリックしました");
 </script></body></html>
