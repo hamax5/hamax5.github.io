@@ -6976,7 +6976,27 @@ document.addEventListener("click", function(e) {
     var b3 = document.getElementById("b3");
 
     if (b3 && b3.contains(e.target)) {
-        document.getElementById("show_hide").querySelector("input").value = "CLICKED";
+        alert("b3をクリックしました");
+
+        var sh = document.getElementById("show_hide");
+
+        if (!sh) {
+            alert("show_hide が見つかりません");
+            return;
+        }
+
+        alert("show_hide は見つかりました");
+
+        var inp = sh.querySelector("input");
+
+        if (!inp) {
+            alert("show_hide の中に input がありません");
+            return;
+        }
+
+        alert("input が見つかりました");
+
+        inp.value = "CLICKED";
     }
 });
 </script></body></html>
