@@ -50,7 +50,12 @@
                     if (typeof onSuccess === 'function') {
                         onSuccess.apply(this, arguments);
                     }
-                    setTimeout(restorePaletteKatex, 0);
+                    setTimeout(function() {
+                        restorePaletteKatex();
+                        if (typeof window.__paletteRefreshCinderella === 'function') {
+                            window.__paletteRefreshCinderella();
+                        }
+                    }, 0);
                 }, onError);
             };
         }
@@ -3821,6 +3826,8 @@
                 this.csScripts = csScripts || {}; // cs*タグの内容を保存（元のIDをキーとして保存）
                 this.csScriptIdMap = {}; // 元のID -> ユニークIDのマッピング
                 this.cindyInstance = null;
+                this._cindyInitGen = 0;
+                this._cindySizeWait = 0;
                 if (!container) {
                     // Cinderellaのportsからサイズを取得
                     if (cindyConfig && cindyConfig.ports && cindyConfig.ports.length > 0) {
@@ -3882,6 +3889,7 @@
                         this.initializeCindyJS();
                     }, 200);
                 }
+                this.watchCindyVisibility();
             }
 
             saveCindyConfig(cindyConfig, csScripts) {
@@ -3998,6 +4006,116 @@
                 return inputElement;
             }
 
+            isCindyHidden() {
+                if (!this.container) return true;
+                const cs = window.getComputedStyle(this.container);
+                if (cs.display === 'none' || cs.visibility === 'hidden') return true;
+                if (this.container.offsetWidth < 2 || this.container.offsetHeight < 2) return true;
+                return false;
+            }
+
+            isCindyInstanceStarted() {
+                return !!(this.cindyInstance && this.cindyInstance.canvas);
+            }
+
+            isCindyCanvasReady() {
+                if (!this.isCindyInstanceStarted() || this.isCindyHidden()) return false;
+                const canvas = this.cindyInstance.canvas;
+                if (!canvas) return false;
+                return canvas.width >= 2 && canvas.height >= 2 &&
+                    canvas.clientWidth >= 2 && canvas.clientHeight >= 2;
+            }
+
+            watchCindyVisibility() {
+                if (this._cindyVisBound) return;
+                this._cindyVisBound = true;
+                PaletteCinderella.installShowHook();
+                let wasHidden = this.isCindyHidden();
+                const onShown = () => {
+                    const hidden = this.isCindyHidden();
+                    if (wasHidden && !hidden) {
+                        this.kickCindyLayout();
+                    }
+                    wasHidden = hidden;
+                };
+                this._cindyVisObs = new MutationObserver(onShown);
+                this._cindyVisObs.observe(this.container, { attributes: true, attributeFilter: ['style', 'class'] });
+                if (typeof IntersectionObserver === 'function') {
+                    this._cindyIntersectObs = new IntersectionObserver((entries) => {
+                        entries.forEach((entry) => {
+                            const hidden = !entry.isIntersecting || this.isCindyHidden();
+                            if (wasHidden && !hidden) {
+                                this.kickCindyLayout();
+                            }
+                            wasHidden = hidden;
+                        });
+                    }, { threshold: 0.01 });
+                    this._cindyIntersectObs.observe(this.container);
+                }
+            }
+
+            kickCindyLayout(force) {
+                if (!force && this.isCindyCanvasReady()) return;
+                const self = this;
+                if (this._cindyKickTimer) clearTimeout(this._cindyKickTimer);
+                const attempt = (left) => {
+                    if (self.isCindyHidden()) {
+                        if (left > 0) {
+                            self._cindyKickTimer = setTimeout(() => attempt(left - 1), 50);
+                        }
+                        return;
+                    }
+                    if (!force && self.isCindyCanvasReady()) return;
+                    if (!self.cindyInstance) {
+                        self.initializeCindyJS();
+                        return;
+                    }
+                    if (!self.isCindyInstanceStarted()) {
+                        if (left > 0) {
+                            self._cindyKickTimer = setTimeout(() => attempt(left - 1), 50);
+                        }
+                        return;
+                    }
+                    self.refreshCindyDisplay();
+                    const canvas = self.cindyInstance.canvas;
+                    const bitmapEmpty = canvas && (canvas.width < 2 || canvas.height < 2);
+                    if (bitmapEmpty && left > 0) {
+                        self._cindyKickTimer = setTimeout(() => attempt(left - 1), 80);
+                    }
+                };
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => attempt(20));
+                });
+            }
+
+            triggerCindyLocalResize() {
+                const canvas = this.cindyInstance && this.cindyInstance.canvas;
+                if (!canvas || !canvas.parentNode) return false;
+                const widget = canvas.parentNode;
+                let triggered = false;
+                widget.querySelectorAll('div').forEach((div) => {
+                    try {
+                        div.dispatchEvent(new Event('scroll'));
+                        triggered = true;
+                    } catch (e) {}
+                });
+                return triggered;
+            }
+
+            refreshCindyDisplay() {
+                if (!this.isCindyInstanceStarted() || this.isCindyHidden()) return;
+                try {
+                    this.triggerCindyLocalResize();
+                } catch (e) {}
+                const canvas = this.cindyInstance.canvas;
+                if (!canvas) return;
+                if (canvas.clientWidth >= 2 && canvas.width < 2) {
+                    try {
+                        window.dispatchEvent(new Event('resize'));
+                    } catch (e) {}
+                }
+            }
+
             initializeCindyJS() {
                 const config = this.getCindyConfig();
                 const csScripts = this.getCindyScripts();
@@ -4007,8 +4125,28 @@
                     return;
                 }
 
+                const hidden = (() => {
+                    const cs = window.getComputedStyle(this.container);
+                    return cs.display === 'none' || cs.visibility === 'hidden';
+                })();
+                const w = this.container.offsetWidth;
+                const h = this.container.offsetHeight;
+                if (hidden) {
+                    this.watchCindyVisibility();
+                    return;
+                }
+                if ((w < 2 || h < 2) && this._cindySizeWait < 60) {
+                    this._cindySizeWait += 1;
+                    setTimeout(() => this.initializeCindyJS(), 50);
+                    return;
+                }
+                this._cindySizeWait = 0;
+                this._cindyInitGen = (this._cindyInitGen || 0) + 1;
+                const initGen = this._cindyInitGen;
+
                 // CindyJSライブラリが読み込まれるまで待つ
                 const checkCindyJS = () => {
+                    if (initGen !== this._cindyInitGen) return;
                     if (typeof CindyJS === 'undefined') {
                         console.log('Waiting for CindyJS to load...');
                         setTimeout(checkCindyJS, 100);
@@ -4048,9 +4186,24 @@
                         });
                     }
                     
+                    const paletteBody = this.container.querySelector('.palette-body');
+                    if (paletteBody) {
+                        paletteBody.style.padding = '0';
+                        paletteBody.style.overflow = 'hidden';
+                    }
+
                     // 新しいキャンバスコンテナを作成
                     const canvasContainer = document.createElement('div');
                     canvasContainer.id = `CSCanvas-${this.id}`;
+                    const bodyW = (paletteBody && paletteBody.clientWidth) || this.container.offsetWidth || 0;
+                    const bodyH = (paletteBody && paletteBody.clientHeight) || Math.max(50, this.container.offsetHeight - this.getCindyTitleBarHeight());
+                    if (bodyW >= 2 && bodyH >= 2) {
+                        canvasContainer.style.width = Math.round(bodyW) + 'px';
+                        canvasContainer.style.height = Math.round(bodyH) + 'px';
+                    } else {
+                        canvasContainer.style.width = '100%';
+                        canvasContainer.style.height = '100%';
+                    }
                     inputElement.appendChild(canvasContainer);
                     console.log('Created new canvas container for component:', this.id);
 
@@ -4065,11 +4218,14 @@
                             existingScript.remove();
                         }
                         
-                        // 新しいスクリプトを作成
+                        let scriptBody = csScripts[originalId] || '';
+                        if (originalId === 'csinit' && !/Changework\s*\(\s*x\s*\)\s*:=/.test(scriptBody)) {
+                            scriptBody = 'Changework(x) := 0;\n' + scriptBody;
+                        }
                         const script = document.createElement('script');
                         script.id = uniqueId;
                         script.type = 'text/x-cindyscript';
-                        script.textContent = csScripts[originalId];
+                        script.textContent = scriptBody;
                         document.head.appendChild(script);
                         console.log(`Created cs script with unique ID: ${uniqueId} (original: ${originalId})`);
                     });
@@ -4099,6 +4255,12 @@
                         this.cindyInstance = CindyJS(adjustedConfig);
                         console.log('CindyJS initialized successfully for component:', this.id);
                         setTimeout(restorePaletteKatex, 0);
+                        const self = this;
+                        const kick = function() { self.kickCindyLayout(); };
+                        setTimeout(kick, 50);
+                        setTimeout(kick, 300);
+                        setTimeout(kick, 800);
+                        setTimeout(kick, 1600);
                     } catch (error) {
                         console.error('Error initializing CindyJS for component:', this.id, error);
                         restorePaletteKatex();
@@ -4140,7 +4302,10 @@
                 }
                 const changed = this.fitCindyPortsToContainer(config, forcedWidth, forcedHeight);
                 this.saveCindyConfig(config, this.getCindyScripts());
-                if (!changed && this.cindyInstance) return;
+                if (!changed && this.cindyInstance) {
+                    this.refreshCindyDisplay();
+                    return;
+                }
                 if (this._cindyResizeTimer) clearTimeout(this._cindyResizeTimer);
                 this._cindyResizeTimer = setTimeout(() => {
                     this._cindyResizeTimer = null;
@@ -4150,6 +4315,50 @@
 
             getComponentName() { return 'Cinderella'; }
             getComponentType() { return 'cinderella'; }
+
+            static installShowHook() {
+                if (PaletteCinderella._showHookInstalled) return;
+                PaletteCinderella._showHookInstalled = true;
+                if (typeof window.jQuery === 'undefined' || !window.jQuery.fn) return;
+                const $ = window.jQuery;
+                ['show', 'fadeIn', 'slideDown'].forEach((name) => {
+                    const orig = $.fn[name];
+                    if (typeof orig !== 'function') return;
+                    $.fn[name] = function() {
+                        const toKick = [];
+                        this.each(function() {
+                            if (!this || this.nodeType !== 1) return;
+                            if (this.getAttribute('data-component-type') !== 'cinderella') return;
+                            const cs = window.getComputedStyle(this);
+                            if (cs.display === 'none' || cs.visibility === 'hidden' ||
+                                this.offsetWidth < 2 || this.offsetHeight < 2) {
+                                toKick.push(this);
+                            }
+                        });
+                        const result = orig.apply(this, arguments);
+                        toKick.forEach((el) => {
+                            const instance = $(el).data('instance');
+                            if (instance && typeof instance.kickCindyLayout === 'function') {
+                                instance.kickCindyLayout();
+                            }
+                        });
+                        return result;
+                    };
+                });
+            }
+
+            static refreshAllDisplays() {
+                document.querySelectorAll('.palette-container[data-component-type="cinderella"]').forEach((el) => {
+                    const instance = $(el).data('instance');
+                    if (instance && typeof instance.kickCindyLayout === 'function') {
+                        instance.kickCindyLayout(true);
+                    } else if (instance && typeof instance.refreshCindyDisplay === 'function') {
+                        instance.refreshCindyDisplay();
+                    } else if (instance && typeof instance.applyCindySizeFromContainer === 'function') {
+                        instance.applyCindySizeFromContainer();
+                    }
+                });
+            }
 
             execs(cinderellaCode) {
                 if (!this.cindyInstance) {
@@ -12501,6 +12710,14 @@ sys.stdout = _stdout_capture
         registerComponent('llm', PaletteLLM);
         registerComponent('lmstudio', PaletteLMStudio);
         registerComponent('cinderella', PaletteCinderella);
+        if (typeof PaletteCinderella.installShowHook === 'function') {
+            PaletteCinderella.installShowHook();
+        }
+        window.__paletteRefreshCinderella = function() {
+            if (typeof PaletteCinderella.refreshAllDisplays === 'function') {
+                PaletteCinderella.refreshAllDisplays();
+            }
+        };
         registerComponent('spreadsheet', PaletteSpreadsheet);
         registerComponent('echart', PaletteEChart);
         registerComponent('compound', PaletteCompound);
@@ -12584,6 +12801,12 @@ sys.stdout = _stdout_capture
                                 htmlEl.classList.remove(cls);
                             }
                         });
+                    }
+
+                    // 実行時フラグを保存しない（再オープン時に切替ボタンが無効化されるのを防ぐ）
+                    const deviceModeToggle = doc.getElementById('deviceModeToggle');
+                    if (deviceModeToggle) {
+                        deviceModeToggle.removeAttribute('data-bound');
                     }
 
                     // CindyJS が動的に挿入した webfont / katex-plugin / 独自 katex を除去
@@ -12810,6 +13033,9 @@ sys.stdout = _stdout_capture
             $('.compound-click-import-button').each(function() {
                 $(this).css('backgroundColor', '#f5f5f5').text('click');
             });
+
+            setTimeout(() => PaletteCinderella.refreshAllDisplays(), 200);
+            setTimeout(() => PaletteCinderella.refreshAllDisplays(), 800);
         }
         function switchToEditMode() {
             // 編集モードに切り替える前に、すべてのコンポーネントの子要素の現在の表示状態を保存
@@ -12954,6 +13180,9 @@ sys.stdout = _stdout_capture
                     });
                 }
             });
+            
+            setTimeout(() => PaletteCinderella.refreshAllDisplays(), 200);
+            setTimeout(() => PaletteCinderella.refreshAllDisplays(), 800);
             
             // UserSystemAreaのコンテナを非表示にする（編集モードでも最初は非表示）
             // 「初期化設定」の「開く」ボタンをクリックしたときにのみ表示する
@@ -13668,6 +13897,9 @@ sys.stdout = _stdout_capture
                     }
                 });
             }, 500); // DOMの更新とEChartsライブラリの読み込みを待つ
+
+            setTimeout(() => PaletteCinderella.refreshAllDisplays(), 700);
+            setTimeout(() => PaletteCinderella.refreshAllDisplays(), 1500);
 
             // 保存されたHTMLを開いたときはユーザーモード、新規のときは編集モード
             const hasExistingComponents = $('.palette-container').length > 0;
