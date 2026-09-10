@@ -6764,7 +6764,7 @@ Windispg();
 ;
 
 
-</script><link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/katex/katex.min.css" media="all"><script id="cs1init" type="text/x-cindyscript">
+</script><link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/katex/katex.min.css" media="all"><link rel="stylesheet" href="https://ktky.sakura.ne.jp/lib/CindyJS/katex/katex.min.css" media="all"><script id="cs1init" type="text/x-cindyscript">
 
 Invert(x):=reverse(x);
 Ketinit():=Ketinit("fig",0.3); //190831from
@@ -9952,21 +9952,17 @@ sgn=-1;
 
 
 </script><script id="cs1draw" type="text/x-cindyscript">
-a1=1;
-b1=1;
 
 Ketinit();
-Setketcindyjs(["Label=[]","Color=offwhite"]);//no ketjs
 
-//a1=4;
-//b1=-5;
+a1=4;
+b1=-5;
 fun1(x):=x^3-2*x^2+3;
 Plotdata("1","fun1(x)","x",["Num=100"]);
 
 P1=[2,fun1(2)];
 Q1=[0,-5];
 
-sgn=1;//sgn*(-1);
 if(sgn==1,
  Lineplot("2",[P1,Q1],["dr,2","Color=blue"]);
  Plotdata("2","a1*x+b1","x",["Num=2","dr,1.5","Color=red"]);
@@ -9976,6 +9972,10 @@ Htickmark([5,"s1","5",-5,"s1","-5"]);
 Vtickmark([5,"w1","5",-5,"w1","-5"]);
 
 Windispg();
+
+;
+
+
 </script></head><body>&gt;
     <!-- <input type="text" name="hoge" value="" readonly="readonly"> -->
   <title>Math Input Teaching Material</title>
@@ -10233,9 +10233,8 @@ Palette_Cindy.cinderella_obj[2].evokeCS("sgn=sgn*(-1);");
 </textarea></div><div id="b3c" class="palette body top button" index="8" style="top: 529px; left: 20px; position: absolute; display: none;">
     <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 120px; height: 30px; top: 0px; left: 0px;" value="解説"><input type="button" class="palette body move button" value="i: b3c" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px; display: inline-block;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px; display: inline-block;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 90px; padding: 0px; font-size: 11px; display: inline-block;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240); display: inline-block;"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; resize: both; display: none; margin: 0px; width: 600px; height: 506px;">setstring("解説");
 
-query_chatgpt("関数$y=x^3-3x+2$について，極値と変曲点を求めてグラフを書く手順を説明してください．・前置きは不要．・直接学生向けに説明する．・グラフの軸の縮尺は1:1にする．・以下の(1)-(2)の説明を入れる．(1)x¥to ¥inftyのときは関数の値はx^3の影響が大きいからy¥to ¥infty，同様にx¥to -¥inftyのときはy¥to -¥inftyである．(2)xの値が0の近くになるとx^3よりもxの影響が大きくなり，増減表でそのグラフの概形を調べることになる．")</textarea></div><div id="c2a" class="palette body top cindy" index="1" style="top: 403px; left: 274px; position: absolute; display: block;">
-    <div id="CSCanvas_1" class="CindyJS-widget palette body target cindy" style="position: relative; width: 379px; height: 218px;"><canvas width="760" height="436" style="position: absolute; border: medium; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 218px; width: 379px; background-color: rgb(247, 247, 247);"></canvas><div style="position: absolute; transition: all; inset: 0px; overflow: hidden; z-index: -1; visibility: hidden; width: 379px; height: 218px;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: all; inset: 0px; overflow: hidden; z-index: -1; visibility: hidden; width: 379px; height: 218px;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: c2a" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 349px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 218px; left: 349px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 218px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 379px; resize: both; display: none;"></textarea></div><div id="b2a" class="palette body top button" index="9" style="top: 399px; left: 78px; position: absolute;">
-    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 120px; height: 30px; top: 0px; left: 0px;" value="確認"><input type="button" class="palette body move button" value="i: b2a" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 90px; padding: 0px; font-size: 11px"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; resize: both; display: none; margin: 0px; width: 416px; height: 370px;">setstring("確認");
+query_chatgpt("関数$y=x^3-3x+2$について，極値と変曲点を求めてグラフを書く手順を説明してください．・前置きは不要．・直接学生向けに説明する．・グラフの軸の縮尺は1:1にする．・以下の(1)-(2)の説明を入れる．(1)x¥to ¥inftyのときは関数の値はx^3の影響が大きいからy¥to ¥infty，同様にx¥to -¥inftyのときはy¥to -¥inftyである．(2)xの値が0の近くになるとx^3よりもxの影響が大きくなり，増減表でそのグラフの概形を調べることになる．")</textarea></div><div id="b2a" class="palette body top button" index="9" style="top: 399px; left: 78px; position: absolute;">
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 120px; height: 30px; top: 0px; left: 0px;" value="確認"><input type="button" class="palette body move button" value="i: b2a" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; resize: both; display: none; margin: 0px; width: 416px; height: 370px;">setstring("確認");
 
 
 var ab = get_ketmath_input();
@@ -10269,7 +10268,7 @@ Vtickmark([5,"w1","5",-5,"w1","-5"]);
 Windispg();
 `;
 csdraw("c2a",com)</textarea></div><div id="b2c" class="palette body top button" index="10" style="top: 499px; left: 80px; position: absolute;">
-    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 120px; height: 30px; top: 0px; left: 0px;" value="解説"><input type="button" class="palette body move button" value="i: b2c" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 90px; padding: 0px; font-size: 11px"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; resize: both; display: none; margin: 0px; width: 468px; height: 304px;">setstring("解説");
+    <input type="button" undefined="" class="palette button target exe" style="position: absolute; width: 120px; height: 30px; top: 0px; left: 0px;" value="解説"><input type="button" class="palette body move button" value="i: b2c" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser button" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size button" value="s" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 90px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit button" value="e" style="position: absolute; width: 30px; height: 30px; top: 30px; left: 0px; padding: 0px; font-size: 11px; background-color: rgb(240, 240, 240);"><textarea class="palette body texta button" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 120px; resize: both; display: none; margin: 0px; width: 468px; height: 304px;">setstring("解説");
 
 var ab = get_ketmath_input();
 const [a1, b1] =
@@ -10293,7 +10292,8 @@ const prompt = `
 学生の答えと正解を比較し，正誤により必要な解説を作成してください。
 `;
 
-query_chatgpt(prompt)</textarea></div></div> <!-- <div id="top_screen" -->
+query_chatgpt(prompt)</textarea></div><div id="c2a" class="palette body top cindy" index="1" style="top: 367px; left: 366px; position: absolute; display: block;">
+    <div id="CSCanvas_1" class="CindyJS-widget palette body target cindy" style="position: relative; width: 283px; height: 258px;"><canvas width="568" height="516" style="position: absolute; border: medium; top: 0px; left: 0px; padding: 0px; margin: 0px; height: 258px; width: 283px; background-color: rgb(247, 247, 247);"></canvas><div style="position: absolute; transition: all; inset: 0px; overflow: hidden; z-index: -1; visibility: hidden; width: 283px; height: 258px;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 100000px; height: 100000px"></div></div><div style="position: absolute; transition: all; inset: 0px; overflow: hidden; z-index: -1; visibility: hidden; width: 283px; height: 258px;"><div style="position: absolute; transition: 0s; left: 0; top: 0; width: 200%; height: 200%"></div></div></div><input type="button" class="palette body move cindy" value="i: c2a" style="position: absolute; width: 50px; height: 50px; top: -50px; left: 0px;"><input type="button" class="palette body eraser cindy" value="x" style="position: absolute; width: 30px; height: 30px; top: -30px; left: 253px; padding: 0px; font-size: 11px;"><input type="button" class="palette body size cindy" value="s" style="position: absolute; width: 30px; height: 30px; top: 258px; left: 253px; padding: 0px; font-size: 11px;"><input type="button" class="palette body edit cindy" value="e" style="position: absolute; width: 30px; height: 30px; top: 258px; left: 0px; padding: 0px; font-size: 11px;"><input type="button" class="palette body exe cindy" value="j" style="position: absolute; width: 30px; height: 30px; top: 0px; left: -30px; padding: 0px; font-size: 11px"><textarea class="palette body texta cindy" rows="20" cols="80" value="" head="0" style="position: absolute; top: 0px; left: 283px; resize: both; display: none;"></textarea></div></div> <!-- <div id="top_screen" -->
   
   
   <div id="bottom_screen">
@@ -10349,9 +10349,9 @@ Palette_Cindy.cinderella_json[2]=`{"scripts":"cs2*","use":["katex"],"defaultAppe
 Palette_Cindy.cinderella_init[2]="";
 Palette_Cindy.cinderella_obj[2].evokeCS(Palette_Cindy.cinderella_init[2]);
 
-Palette_Cindy.cinderella_code[1]=`Palette_Cindy.cinderella_obj[1] = CindyJS({"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"NE","type":"Free","pos":[-3.7990867579907355,-4,-0.702538458122182],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"SW","type":"Free","pos":[-3.639484978540983,-4,0.6603258469046034],"color":[1,1,1],"labeled":false,"size":2,"border":false}],"ports":[{"width":379,"height":218,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.649077815893395,6.0199177644970305,6.5346850792758735,-5.648141370490087]}],"grid":1,"snap":true,"background":"rgb(247, 247, 247)"}],"csconsole":false,"cinderella":{"build":2136,"version":[3,0,2136]}});`;
+Palette_Cindy.cinderella_code[1]=`Palette_Cindy.cinderella_obj[1] = CindyJS({"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"NE","type":"Free","pos":[-3.7990867579907355,-4,-0.702538458122182],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"SW","type":"Free","pos":[-3.639484978540983,-4,0.6603258469046034],"color":[1,1,1],"labeled":false,"size":2,"border":false}],"ports":[{"width":283,"height":258,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.649077815893395,6.0199177644970305,6.5346850792758735,-5.648141370490087]}],"grid":1,"snap":true,"background":"rgb(247, 247, 247)"}],"csconsole":false,"cinderella":{"build":2136,"version":[3,0,2136]}});`;
 eval(Palette_Cindy.cinderella_code[1]);
-Palette_Cindy.cinderella_json[1]=`{"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"NE","type":"Free","pos":[-3.7990867579907355,-4,-0.702538458122182],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"SW","type":"Free","pos":[-3.639484978540983,-4,0.6603258469046034],"color":[1,1,1],"labeled":false,"size":2,"border":false}],"ports":[{"width":379,"height":218,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.649077815893395,6.0199177644970305,6.5346850792758735,-5.648141370490087]}],"grid":1,"snap":true,"background":"rgb(247, 247, 247)"}],"csconsole":false,"cinderella":{"build":2136,"version":[3,0,2136]}}`;
+Palette_Cindy.cinderella_json[1]=`{"scripts":"cs1*","use":["katex"],"defaultAppearance":{"dimDependent":0.7,"fontFamily":"sans-serif","lineSize":1,"pointSize":5,"textsize":12},"angleUnit":"°","geometry":[{"name":"NE","type":"Free","pos":[-3.7990867579907355,-4,-0.702538458122182],"color":[1,1,1],"labeled":false,"size":2,"border":false},{"name":"SW","type":"Free","pos":[-3.639484978540983,-4,0.6603258469046034],"color":[1,1,1],"labeled":false,"size":2,"border":false}],"ports":[{"width":283,"height":258,"id":"CSCanvas_1","transform":[{"visibleRect":[-6.649077815893395,6.0199177644970305,6.5346850792758735,-5.648141370490087]}],"grid":1,"snap":true,"background":"rgb(247, 247, 247)"}],"csconsole":false,"cinderella":{"build":2136,"version":[3,0,2136]}}`;
 Palette_Cindy.cinderella_init[1]="";
 Palette_Cindy.cinderella_obj[1].evokeCS(Palette_Cindy.cinderella_init[1]);
 
